@@ -1,20 +1,20 @@
 #include "header.h"
+#include <ctype.h>
 
-#define line_len 255
+#define line_len 4096
+#define STARTING_ALLOCATION 512
 
 Bool verbose = True;
 
 int json_parse(const char *file_path, uint8_t num_entries, json_data json_entry[])
 {
-	char *reject = "\"{}[]:;";
 	FILE *fp = fopen(file_path, "r");
-	char *line = smalloc(line_len + 1);	/* used for storing the line buffer in the file */
+	char *line;	/* used for storing the line buffer in the file */
 
 	Bool open_quote = False;
 	Bool key_specified = False;
 	uint8_t start_quote_index = 0;
 
-	uint16_t line_number = 0; 
 	uint8_t i = 0;
 
 	uint8_t str_size = 0;
@@ -23,36 +23,88 @@ int json_parse(const char *file_path, uint8_t num_entries, json_data json_entry[
 	char *endptr = NULL;
 	long value = 0;
 
-	uint8_t num_lookups = 0;	/* counts the number of entries looked up exits when everything is done */
+	char buf[4096];
+	size_t index;
+	int digit_size;		/* Calculating integer size */
+	long temp_digit;	/* temp integer value for calculations */
+	char *p;
+	size_t total_allocations = 0;
+	void *tmp;		/* for reallocs */
+	size_t len;		/* for len operations */
+	uint8_t num_lookups = 0;	/* counts the number of entries looked up exits when
+					   everything is done */
 	uint8_t current_entry = 0;	/* store the current entry being looked up
-	if an entry is matched (found) the counter goes up */
+					   if an entry is matched (found) the counter goes up */
 
 	file_check(fp, file_path);	/* checks for fp being NULL */
 
-	do {
+	/* This section turns a multi-line file into one line.
+	 */
+	total_allocations += STARTING_ALLOCATION;
+	line = smalloc(total_allocations);
+	line[0] = '\0';
+
+	while (fgets(buf, sizeof(buf), fp))
+	{
+		p = strchr(buf, '\n');
+
+		if (p)
+			*p = '\0';
+
+		index = strlen(buf);
+
+		len = strlen(line);
+		/* Reallocation */
+		if (len + index + 2 > total_allocations)
+		{
+			total_allocations += STARTING_ALLOCATION;
+			tmp = realloc(line, total_allocations);
+			if (tmp == NULL)
+			{
+				perror("realloc failed");
+				exit(EXIT_FAILURE);
+			}
+			line = tmp;
+		}
+		/* Reallocation */
+
+		memcpy(line + len, buf, index);
+		line[len + index] = ' ';
+		line[len + index + 1] = '\0';
+	}
+	fclose(fp);
+	/* This section turns a multi-line file into one line.
+	 */
+
+	printf("CODE: %s\n", line);
+
+	do
+	{
 		Bool key_success = False;
 		open_quote = False;
 		i = 0;
 		key_value = NULL;
 		/* only valid since line is an array of chars */
 
-		if (fgets(line, line_len, fp) == NULL)
-		{
-			/* end of file */
-			break;
-		}
-
 		while (line[i] != '\0')
 		{
-			Bool end_line = False;
-			if (line[i] == '\t' || line[i] == ' ')
-			{
+			if (isspace(line[i]))
+			{	/* isspace checks every whitespace */
 				i++;
 				continue;
 			}
 
 			switch (line[i])
 			{
+			case '}':
+				/* end of object definition */
+				break;
+			case '{':
+				/* start of object definition */
+				break;
+			case ',':
+				/* comma for seperating */
+				break;
 			case ';':
 				if (!(i > start_quote_index + str_size))
 				{
@@ -63,7 +115,6 @@ int json_parse(const char *file_path, uint8_t num_entries, json_data json_entry[
 						exit(1);
 					}
 				}
-				end_line = True;
 				i++;
 				continue;
 
@@ -79,7 +130,6 @@ int json_parse(const char *file_path, uint8_t num_entries, json_data json_entry[
 					{
 						open_quote = True;
 						start_quote_index = i + 1;
-						break;
 					}
 
 					str_size = (uint8_t)strcspn(line + start_quote_index, "\"");
@@ -91,7 +141,7 @@ int json_parse(const char *file_path, uint8_t num_entries, json_data json_entry[
 
 					key_value = smalloc(str_size + 1);
 
-					/* copy bytes from line into the key_value buffer 
+					/* copy bytes from line into the key_value buffer
 					 * memcpy() will only copy 'str_size' bytes into the key_value buffer */
 					memcpy(key_value, line + start_quote_index, str_size);
 					key_value[str_size] = '\0';
@@ -100,17 +150,18 @@ int json_parse(const char *file_path, uint8_t num_entries, json_data json_entry[
 					key_success = False;
 					current_entry = key_match(&key_success, key_value, num_entries, json_entry);
 
-					printf("entry : %d\n", current_entry);
+					if (key_success)
+					{
+						json_entry[current_entry].key_value = key_value;
+						printf("entry : %d\n", current_entry);
+					}
 
+					i += str_size + 1;
 					start_quote_index = 0;
 					open_quote = False;
+					num_lookups++;
 					break;
 				}
-				/* OTHERWISE if  the key_specified boolean IS TRUE 
-				 * this will fallthrough onto the default case 
-				 * (since this means we are now checking for the result (assignement of a string) */
-				__attribute__ ((fallthrough));
-
 			default:
 				/* full expression is only true if the start_quote_index */
 				if ((!start_quote_index) && key_specified)
@@ -121,45 +172,60 @@ int json_parse(const char *file_path, uint8_t num_entries, json_data json_entry[
 						{
 							start_quote_index = i + 1;
 						}
-						printf("string type\n");
+						str_size = (uint8_t)strcspn(line + start_quote_index, "\"");
+						key_value = malloc(str_size + 1);
+						memcpy(key_value, line + start_quote_index, str_size);
+						key_value[str_size] = '\0';
+						printf("Value of [%s]: %s\n", json_entry[current_entry].key_value, key_value);
+						i += str_size + 1;
+						key_specified = False;
 					}
 					else if (json_entry[current_entry].data_type == INTEGER)
 					{
-					
 						if (line[i] == '"')
 						{
 							fprintf(stderr, "unexpected symbol '\"' in integer type\n");
 							exit(1);
 						}
-					
+
 						value = strtol(line + i, &endptr, 10);
-					
+
 						/* no characters are valid */
 						if (endptr == line + i)
 						{
 							fprintf(stderr, "invalid integer: %s\n", line + i);
 							exit(1);
 						}
-					
+
 						/* check the character following the integer */
-						if ((*endptr != ';') && (*endptr != '\0') && (*endptr != '\n') && (*endptr != ' ') && (*endptr != '\t'))
+						if ((*endptr != ';') && (*endptr != '\0') && !isspace(*endptr) && (*endptr != '}'))
 						{
 							fprintf(stderr, "invalid character '%c' after integer\n", *endptr);
 							exit(1);
 						}
-					
+
 						if (value < INT32MIN || value > INT32MAX)
 						{
 							fprintf(stderr, "integer out of bounds : %ld\n", value);
 							exit(1);
 						}
-					
+						/* calculating digit size */
+						digit_size = 0;
+						temp_digit = value;
+						if (temp_digit == 0)
+							digit_size = 1;
+						else
+							while (temp_digit != 0)
+							{
+								digit_size++;
+								temp_digit /= 10;
+							}
 						/* TODO store value in buffer allocated (sizeof(uint64_t) ) */
-					
+
 						if (verbose)
 							printf("integer value -> %ld\n", value);
-					
-						i = (uint8_t)(endptr - line);
+
+						i += digit_size;
 					}
 					else if (json_entry[current_entry].data_type == FLOAT)
 					{
@@ -172,26 +238,17 @@ int json_parse(const char *file_path, uint8_t num_entries, json_data json_entry[
 				}
 			}
 
-			/* valid cast since the line can't be larger */
-			if (!end_line)
-			{
-				/* jumps to the next characters (ignore whitespace) */
-				i += (uint8_t)strcspn(line + i, reject);
-			}
-			else
-				break;
 			i++;
 		}
 
-		line_number++;
-	} while (num_entries > num_lookups && line_number < 1024);
+	} while (num_entries > num_lookups);
 
 	if (key_value != NULL)
 	{
 		free(key_value);
 	}
 	free(line);
-	fclose(fp);
 
 	return 0;
 }
+

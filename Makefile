@@ -1,4 +1,4 @@
-CC = gcc
+CC = cc
 
 filenames := main parser checks compare
 src_fpaths = $(addprefix src/, $(filenames))
