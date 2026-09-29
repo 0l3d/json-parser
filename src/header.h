@@ -6,7 +6,7 @@
 #include "json_data.h"
 
 /* parse.c */
-	int json_parse(const char *file_path, uint8_t num_entries, json_data json_entry[]);
+	int json_parse(const char *file_path, int num_entries, json_data json_entry[]);
 
 /* compare.c */
 	Bool str_compare(const char *arg, const char *str);

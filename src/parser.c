@@ -1,15 +1,18 @@
 #include "header.h"
 #include <ctype.h>
 
-#define line_len 4096
+#define LINE_LEN 4096
 #define STARTING_ALLOCATION 512
 
 Bool verbose = True;
 
-int json_parse(const char *file_path, uint8_t num_entries, json_data json_entry[])
+int json_parse(const char *file_path, int num_entries, json_data json_entry[])
 {
 	FILE *fp = fopen(file_path, "r");
 	char *line;	/* used for storing the line buffer in the file */
+
+	size_t total_allocations = 0;
+	size_t buffer_increment = STARTING_ALLOCATION;
 
 	Bool open_quote = False;
 	Bool key_specified = False;
@@ -23,12 +26,11 @@ int json_parse(const char *file_path, uint8_t num_entries, json_data json_entry[
 	char *endptr = NULL;
 	long value = 0;
 
-	char buf[line_len];
+	char buf[LINE_LEN];
 	size_t index;
 	int digit_size;		/* Calculating integer size */
 	long temp_digit;	/* temp integer value for calculations */
 	char *p;
-	size_t total_allocations = 0;
 	void *tmp;		/* for reallocs */
 	size_t len;		/* for len operations */
 	int num_lookups = 0;	/* counts the number of entries looked up exits when
@@ -57,7 +59,14 @@ int json_parse(const char *file_path, uint8_t num_entries, json_data json_entry[
 		/* Reallocation */
 		if (len + index + 2 > total_allocations)
 		{
-			total_allocations += STARTING_ALLOCATION;
+			buffer_increment = STARTING_ALLOCATION;
+			do 
+			{
+				/* increment the buffer size exponentially */
+				total_allocations += buffer_increment;
+				buffer_increment <<= 1;
+			} while (len + index + 2 > total_allocations);
+
 			tmp = realloc(line, total_allocations);
 			if (tmp == NULL)
 			{
