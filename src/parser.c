@@ -13,11 +13,11 @@ int json_parse(const char *file_path, uint8_t num_entries, json_data json_entry[
 
 	Bool open_quote = False;
 	Bool key_specified = False;
-	uint8_t start_quote_index = 0;
+	int start_quote_index = 0;
 
-	uint8_t i = 0;
+	int i = 0;
 
-	uint8_t str_size = 0;
+	size_t str_size = 0;
 	char *key_value = NULL;
 
 	char *endptr = NULL;
@@ -31,9 +31,9 @@ int json_parse(const char *file_path, uint8_t num_entries, json_data json_entry[
 	size_t total_allocations = 0;
 	void *tmp;		/* for reallocs */
 	size_t len;		/* for len operations */
-	uint8_t num_lookups = 0;	/* counts the number of entries looked up exits when
+	int num_lookups = 0;	/* counts the number of entries looked up exits when
 					   everything is done */
-	uint8_t current_entry = 0;	/* store the current entry being looked up
+	int current_entry = 0;	/* store the current entry being looked up
 					   if an entry is matched (found) the counter goes up */
 
 	file_check(fp, file_path);	/* checks for fp being NULL */
@@ -132,7 +132,7 @@ int json_parse(const char *file_path, uint8_t num_entries, json_data json_entry[
 						start_quote_index = i + 1;
 					}
 
-					str_size = (uint8_t)strcspn(line + start_quote_index, "\"");
+					str_size = strcspn(line + start_quote_index, "\"");
 
 					if (key_value != NULL)
 					{
@@ -173,7 +173,7 @@ int json_parse(const char *file_path, uint8_t num_entries, json_data json_entry[
 						{
 							start_quote_index = i + 1;
 						}
-						str_size = (uint8_t)strcspn(line + start_quote_index, "\"");
+						str_size = strcspn(line + start_quote_index, "\"");
 						key_value = malloc(str_size + 1);
 						memcpy(key_value, line + start_quote_index, str_size);
 						key_value[str_size] = '\0';
