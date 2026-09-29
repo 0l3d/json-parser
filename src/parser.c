@@ -35,7 +35,7 @@ int json_parse(const char *file_path, int num_entries, json_data json_entry[])
 	size_t len;		/* for len operations */
 	int num_lookups = 0;	/* counts the number of entries looked up exits when
 					   everything is done */
-	int current_entry = 0;	/* store the current entry being looked up
+	uint32_t current_entry = 0;	/* store the current entry being looked up
 					   if an entry is matched (found) the counter goes up */
 
 	file_check(fp, file_path);	/* checks for fp being NULL */
@@ -115,7 +115,7 @@ int json_parse(const char *file_path, int num_entries, json_data json_entry[])
 				/* comma for seperating */
 				break;
 			case ';':
-				if (!(i > start_quote_index + str_size))
+				if (!(i > start_quote_index + (signed)str_size))
 				{
 					if (open_quote || key_value == NULL)
 					{
@@ -157,7 +157,8 @@ int json_parse(const char *file_path, int num_entries, json_data json_entry[])
 					printf("key value -> %s\n", key_value);	/* prints the key_value as a test */
 
 					key_success = False;
-					current_entry = key_match(&key_success, key_value, num_entries, json_entry);
+					/* TODO validate num_entries being unsigned or edit fn declaration */
+					current_entry = key_match(&key_success, key_value, (unsigned)num_entries, json_entry);
 
 					if (key_success)
 					{
@@ -165,7 +166,8 @@ int json_parse(const char *file_path, int num_entries, json_data json_entry[])
 						printf("entry : %d\n", current_entry);
 					}
 
-					i += str_size + 1;
+					/* TODO add check before casts */
+					i += (int)str_size + 1;
 					start_quote_index = 0;
 					open_quote = False;
 					num_lookups++;
@@ -187,7 +189,8 @@ int json_parse(const char *file_path, int num_entries, json_data json_entry[])
 						memcpy(key_value, line + start_quote_index, str_size);
 						key_value[str_size] = '\0';
 						printf("Value of [%s]: %s\n", json_entry[current_entry].key_value, key_value);
-						i += str_size + 1;
+						/* TODO add check before casts */
+						i += (int)str_size + 1;
 						key_specified = False;
 					}
 					else if (json_entry[current_entry].data_type == INTEGER)

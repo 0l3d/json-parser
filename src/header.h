@@ -10,7 +10,7 @@
 
 /* compare.c */
 	Bool str_compare(const char *arg, const char *str);
-	uint8_t key_match(Bool *success, const char *key_value, uint8_t num_entries, json_data json_entry[]);
+	uint32_t key_match(Bool *success, const char *key_value, uint32_t num_entries, json_data json_entry[]);
 
 /* checks.c */
 	void *smalloc(size_t size);
