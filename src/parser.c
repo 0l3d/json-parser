@@ -23,7 +23,7 @@ int json_parse(const char *file_path, uint8_t num_entries, json_data json_entry[
 	char *endptr = NULL;
 	long value = 0;
 
-	char buf[4096];
+	char buf[line_len];
 	size_t index;
 	int digit_size;		/* Calculating integer size */
 	long temp_digit;	/* temp integer value for calculations */
@@ -61,7 +61,7 @@ int json_parse(const char *file_path, uint8_t num_entries, json_data json_entry[
 			tmp = realloc(line, total_allocations);
 			if (tmp == NULL)
 			{
-				perror("realloc failed");
+				fprintf(stderr, "realloc failed\n");
 				exit(EXIT_FAILURE);
 			}
 			line = tmp;
@@ -88,7 +88,7 @@ int json_parse(const char *file_path, uint8_t num_entries, json_data json_entry[
 
 		while (line[i] != '\0')
 		{
-			if (isspace(line[i]))
+			if (isspace((unsigned char)line[i]))
 			{	/* isspace checks every whitespace */
 				i++;
 				continue;
@@ -162,6 +162,7 @@ int json_parse(const char *file_path, uint8_t num_entries, json_data json_entry[
 					num_lookups++;
 					break;
 				}
+				__attribute__ ((fallthrough));
 			default:
 				/* full expression is only true if the start_quote_index */
 				if ((!start_quote_index) && key_specified)
@@ -198,7 +199,7 @@ int json_parse(const char *file_path, uint8_t num_entries, json_data json_entry[
 						}
 
 						/* check the character following the integer */
-						if ((*endptr != ';') && (*endptr != '\0') && !isspace(*endptr) && (*endptr != '}'))
+						if ((*endptr != ';') && (*endptr != '\0') && !isspace((unsigned char)*endptr) && (*endptr != '}'))
 						{
 							fprintf(stderr, "invalid character '%c' after integer\n", *endptr);
 							exit(1);
