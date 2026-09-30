@@ -22,8 +22,6 @@ int json_parse(const char *file_path, int num_entries, json_data json_entry[])
 	size_t str_size = 0;
 	char *key_value = NULL;
 
-	long value = 0;
-
 	char buf[LINE_LEN];
 	size_t index;
 	char *p;
@@ -104,6 +102,12 @@ int json_parse(const char *file_path, int num_entries, json_data json_entry[])
 
 			switch (line[i])
 			{
+			case '[':
+				/* start of array definition */
+				break;
+			case ']':
+				/* end of array definition */
+				break;
 			case '}':
 				/* end of object definition */
 				break;
@@ -207,21 +211,28 @@ int json_parse(const char *file_path, int num_entries, json_data json_entry[])
 							exit(1);
 						}
 
-
 						/* TODO store value in buffer allocated (sizeof(uint64_t) ) */
 
-						parse_integer(line + i, int64_t *result);
+						/* TODO store the information (buffer was allocated) somewhere in
+						 * order to prevent memory leaks */
+						json_entry[current_entry].content = malloc(sizeof(int64_t));
+						i += parse_integer(line + i, json_entry[current_entry].content);
 
 						if (verbose)
-							printf("integer value -> %ld\n", value);
+							printf("integer value -> %ld\n", *(int64_t*)(json_entry[current_entry].content));
 					}
 					else if (json_entry[current_entry].data_type == FLOAT)
 					{
+						/* currently unsupported */
 						if (line[i] == '"')
 						{
 							fprintf(stderr, "unexpected symbol '%c' in floating type\n", line[i]);
 							exit(1);
 						}
+					}
+					else if (json_entry[current_entry].data_type == BOOL)
+					{
+						/* currently unsupported */
 					}
 				}
 			}
