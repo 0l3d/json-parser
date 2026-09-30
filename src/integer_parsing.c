@@ -21,6 +21,5 @@ void parse_integer(const char *str, int32_t *result)
 	}
 
 	*result = (int32_t)value;
-
 	return True;
 }

@@ -86,8 +86,7 @@ int json_parse(const char *file_path, int num_entries, json_data json_entry[])
 		line[len + index + 1] = '\0';
 	}
 	fclose(fp);
-	/* This section turns a multi-line file into one line.
-	 */
+	/* This section turns a multi-line file into one line. */
 
 	printf("CODE: %s\n", line);
 
@@ -177,7 +176,7 @@ int json_parse(const char *file_path, int num_entries, json_data json_entry[])
 						break;
 					}
 
-					i += (int)str_size + 1;
+					i += (to_int32((int64_t)str_size) + 1);
 					start_quote_index = 0;
 					open_quote = False;
 					num_lookups++;
@@ -185,7 +184,7 @@ int json_parse(const char *file_path, int num_entries, json_data json_entry[])
 				}
 				__attribute__ ((fallthrough));
 			default:
-				/* full expression is only true if the start_quote_index */
+				/* full expression is only true if the start_quote_index is 0 */
 				if ((!start_quote_index) && valid_key_expr)
 				{
 					if (json_entry[current_entry].data_type == STRING)
@@ -200,20 +199,11 @@ int json_parse(const char *file_path, int num_entries, json_data json_entry[])
 						key_value[str_size] = '\0';
 						printf("Value of [%s]: %s\n", json_entry[current_entry].key_value, key_value);
 
-						if (str_size > INT32MAX)
-						{
-							fprintf(stderr, "Avoided integer overflow in json_parse()\n");
-							fprintf(stderr, "%lu is greater than the upper bound: %d\n", str_size, INT32MAX);
-							/* TODO add failure boolean for freeing all buffers and exiting safely */
-							break;
-						}
-
-						i += (int)str_size + 1;
+						i += (to_int32((int64_t)str_size) + 1);
 						valid_key_expr = False;
 					}
 					else if (json_entry[current_entry].data_type == INTEGER)
 					{
-						printf("Hi\n");
 						if (line[i] == '"')
 						{
 							fprintf(stderr, "unexpected symbol '\"' in integer type\n");
@@ -283,4 +273,3 @@ int json_parse(const char *file_path, int num_entries, json_data json_entry[])
 
 	return 0;
 }
-
