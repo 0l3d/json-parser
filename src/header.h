@@ -12,8 +12,11 @@
 	Bool str_compare(const char *arg, const char *str);
 	uint32_t key_match(Bool *success, const char *key_value, uint32_t num_entries, json_data json_entry[]);
 
-/* checks.c */
+/* memory.c */
+	void *srealloc(void *ptr, size_t size);
 	void *smalloc(size_t size);
+
+/* checks.c */
 	void file_check(FILE *file_path, const char *filename);
 
 /* integers */
