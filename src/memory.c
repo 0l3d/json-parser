@@ -28,8 +28,9 @@ void *srealloc(void *ptr, size_t size)
 
 	if (ptr == NULL)
 	{
-		fprintf(stderr, "Pointer passed into srealloc() is NULL (cannot copy contents of buffer)\n");
-		exit(EXIT_FAILURE);
+		/* even though realloc() can handle NULL, we still print a warning for the developper */
+		fprintf(stderr, "Warning: pointer passed into srealloc() is NULL\n");
+		/* ptr = malloc(size);  malloc is used inside of realloc() instead */
 	}
 
 	ptr = realloc(ptr, size);	/* allocate memory */

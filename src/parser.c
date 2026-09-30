@@ -67,12 +67,7 @@ int json_parse(const char *file_path, int num_entries, json_data json_entry[])
 				buffer_increment <<= 1;
 			} while (len + index + 2 > total_allocations);
 
-			tmp = realloc(line, total_allocations);
-			if (tmp == NULL)
-			{
-				fprintf(stderr, "realloc failed\n");
-				exit(EXIT_FAILURE);
-			}
+			tmp = srealloc(line, total_allocations);
 			line = tmp;
 		}
 		/* Reallocation */
@@ -192,7 +187,7 @@ int json_parse(const char *file_path, int num_entries, json_data json_entry[])
 							start_quote_index = i + 1;
 						}
 						str_size = strcspn(line + start_quote_index, "\"");
-						key_value = malloc(str_size + 1);
+						key_value = smalloc(str_size + 1);
 						memcpy(key_value, line + start_quote_index, str_size);
 						key_value[str_size] = '\0';
 						printf("Value of [%s]: %s\n", json_entry[current_entry].key_value, key_value);
