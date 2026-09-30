@@ -144,7 +144,17 @@ int json_parse(const char *file_path, int num_entries, json_data json_entry[])
 						start_quote_index = i + 1;
 					}
 
-					str_size = strcspn(line + start_quote_index, "\"");
+					do {
+						str_size = strcspn(line + start_quote_index, "\"");
+						if ((str_size - (size_t)start_quote_index) < 1)
+						{
+							break;
+						}
+
+						if (line[str_size] == '\\')
+							continue;
+						
+					} while (1);
 
 					if (key_value != NULL)
 					{
