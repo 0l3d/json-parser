@@ -21,7 +21,7 @@
 	int32_t to_int32(int64_t input);
 
 /* integers */
-	void parse_integer(const char *str, int32_t *result);
+	uint8_t parse_integer(const char *str, int64_t *result);
 
 
 #define INT16MAX (32767)

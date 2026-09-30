@@ -22,13 +22,10 @@ int json_parse(const char *file_path, int num_entries, json_data json_entry[])
 	size_t str_size = 0;
 	char *key_value = NULL;
 
-	char *endptr = NULL;
 	long value = 0;
 
 	char buf[LINE_LEN];
 	size_t index;
-	int digit_size;		/* Calculating integer size */
-	long temp_digit;	/* temp integer value for calculations */
 	char *p;
 	void *tmp;		/* for reallocs */
 	size_t len;		/* for len operations */
@@ -210,44 +207,13 @@ int json_parse(const char *file_path, int num_entries, json_data json_entry[])
 							exit(1);
 						}
 
-						value = strtol(line + i, &endptr, 10);
 
-						/* no characters are valid */
-						if (endptr == line + i)
-						{
-							fprintf(stderr, "invalid integer: %s\n", line + i);
-							exit(1);
-						}
-
-						/* check the character following the integer */
-						if ((*endptr != ';') && (*endptr != ',') && (*endptr != '\0') && !isspace((unsigned char)*endptr) && (*endptr != '}'))
-						{
-							fprintf(stderr, "invalid character '%c' after integer\n", *endptr);
-							exit(1);
-						}
-
-						if (value < INT32MIN || value > INT32MAX)
-						{
-							fprintf(stderr, "integer out of bounds : %ld\n", value);
-							exit(1);
-						}
-						/* calculating digit size */
-						digit_size = 0;
-						temp_digit = value;
-						if (temp_digit == 0)
-							digit_size = 1;
-						else
-							while (temp_digit != 0)
-							{
-								digit_size++;
-								temp_digit /= 10;
-							}
 						/* TODO store value in buffer allocated (sizeof(uint64_t) ) */
+
+						parse_integer(line + i, int64_t *result);
 
 						if (verbose)
 							printf("integer value -> %ld\n", value);
-
-						i += digit_size;
 					}
 					else if (json_entry[current_entry].data_type == FLOAT)
 					{
