@@ -15,7 +15,6 @@ int json_parse(const char *file_path, int num_entries, json_data json_entry[])
 	size_t buffer_increment = STARTING_ALLOCATION;
 
 	Bool open_quote = False;
-	Bool key_specified = False;
 	int start_quote_index = 0;
 
 	int i = 0;
@@ -35,8 +34,17 @@ int json_parse(const char *file_path, int num_entries, json_data json_entry[])
 	size_t len;		/* for len operations */
 	int num_lookups = 0;	/* counts the number of entries looked up exits when
 					   everything is done */
-	uint32_t current_entry = 0;	/* store the current entry being looked up
-					   if an entry is matched (found) the counter goes up */
+	/* relative to the current entry (the key value being looked up
+	 * example: in the following line: { "name": "John" } the key 
+	 * value being looked up is name and the content associated with
+	 * the key value is "John" */
+	int32_t current_entry = 0;	/* store the current entry being looked up */
+	Bool valid_key_found = False;	/* only true when a key is matched example: 
+					   if we're looking for "name" and we found it,
+					   valid_key_found is set to true*/
+	Bool valid_key_expr = False;	/* This bool is only true when valid_key_found is true (see above)
+					   and if we found a colon (':') following the valid key */
+
 
 	file_check(fp, file_path);	/* checks for fp being NULL */
 
