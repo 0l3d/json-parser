@@ -16,8 +16,10 @@ int json_parse(const char *file_path, int num_entries, json_data json_entry[])
 
 	Bool open_quote = False;
 	int start_quote_index = 0;
+	int ending_quote_index = 0;
 
-	int i = 0;
+	int j = 0; /* shared iterator (must be set to 0 after use) */
+	int i = 0;	/* used for the current char */
 
 	size_t str_size = 0;
 	char *key_value = NULL;
@@ -144,16 +146,26 @@ int json_parse(const char *file_path, int num_entries, json_data json_entry[])
 						start_quote_index = i + 1;
 					}
 
+					if (start_quote_index < 0)
+					{
+						fprintf(stderr, "Invalid value in start quote index");
+						/* TODO handle memory leaks on error */
+						exit(EXIT_FAILURE);
+					}
+
+					j = 0;
 					do {
-						str_size = strcspn(line + start_quote_index, "\"");
-						if ((str_size - (size_t)start_quote_index) < 1)
+						str_size = (unsigned)to_int32((int64_t)strcspn(line + start_quote_index + j, "\""));
+						if (line[(unsigned)start_quote_index + str_size + (unsigned)j] == '\\')
+						{
+							/* the quote is escaped with a backslash "\"text\"" */
+							j++;
+							continue;
+						}
+						else
 						{
 							break;
 						}
-
-						if (line[str_size] == '\\')
-							continue;
-						
 					} while (1);
 
 					if (key_value != NULL)
