@@ -16,6 +16,13 @@ int main(int argc, char *argv[])
 		"country",
 		NULL
 	};
+	json_data cold =
+	{
+		NULL,
+		BOOL,
+		"cold",
+		NULL
+	};
 	json_data currency =
 	{
 		NULL,
@@ -44,6 +51,7 @@ int main(int argc, char *argv[])
 	entries[1] = population;
 	entries[2] = currency;
 	entries[3] = country;
+	entries[4] = cold;
 
 	json_parse(file_path, 4, entries);
 
