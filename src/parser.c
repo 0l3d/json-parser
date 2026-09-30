@@ -34,11 +34,12 @@ int json_parse(const char *file_path, int num_entries, json_data json_entry[])
 	size_t len;		/* for len operations */
 	int num_lookups = 0;	/* counts the number of entries looked up exits when
 					   everything is done */
+
 	/* relative to the current entry (the key value being looked up
 	 * example: in the following line: { "name": "John" } the key 
 	 * value being looked up is name and the content associated with
 	 * the key value is "John" */
-	int32_t current_entry = 0;	/* store the current entry being looked up */
+	uint32_t current_entry = 0;	/* store the current entry being looked up */
 	Bool valid_key_found = False;	/* only true when a key is matched example: 
 					   if we're looking for "name" and we found it,
 					   valid_key_found is set to true*/
@@ -92,7 +93,6 @@ int json_parse(const char *file_path, int num_entries, json_data json_entry[])
 
 	do
 	{
-		Bool key_success = False;
 		open_quote = False;
 		i = 0;
 		key_value = NULL;
@@ -132,11 +132,11 @@ int json_parse(const char *file_path, int num_entries, json_data json_entry[])
 
 			case '=':	/* both characters are accepted */
 			case ':':
-				if (key_success)
-					key_specified = True;
+				if (valid_key_found)
+					valid_key_expr = True;
 				break;
 			case '"':
-				if (!key_specified)
+				if (!valid_key_expr)
 				{
 					if (!open_quote)
 					{
@@ -159,14 +159,14 @@ int json_parse(const char *file_path, int num_entries, json_data json_entry[])
 					key_value[str_size] = '\0';
 					printf("key value -> %s\n", key_value);	/* prints the key_value as a test */
 
-					key_success = False;
+					valid_key_found = False;
 					/* TODO validate num_entries being unsigned or edit fn declaration */
-					current_entry = key_match(&key_success, key_value, (unsigned)num_entries, json_entry);
+					current_entry = key_match(&valid_key_found, key_value, (unsigned)num_entries, json_entry);
 
-					if (key_success)
+					if (valid_key_found)
 					{
 						json_entry[current_entry].key_value = key_value;
-						printf("entry : %d\n", current_entry);
+						printf("entry : %d has been found under the name \"%s\"\n", current_entry, key_value);
 					}
 
 					if (str_size > INT32MAX)
@@ -186,7 +186,7 @@ int json_parse(const char *file_path, int num_entries, json_data json_entry[])
 				__attribute__ ((fallthrough));
 			default:
 				/* full expression is only true if the start_quote_index */
-				if ((!start_quote_index) && key_specified)
+				if ((!start_quote_index) && valid_key_expr)
 				{
 					if (json_entry[current_entry].data_type == STRING)
 					{
@@ -209,10 +209,11 @@ int json_parse(const char *file_path, int num_entries, json_data json_entry[])
 						}
 
 						i += (int)str_size + 1;
-						key_specified = False;
+						valid_key_expr = False;
 					}
 					else if (json_entry[current_entry].data_type == INTEGER)
 					{
+						printf("Hi\n");
 						if (line[i] == '"')
 						{
 							fprintf(stderr, "unexpected symbol '\"' in integer type\n");
@@ -229,7 +230,7 @@ int json_parse(const char *file_path, int num_entries, json_data json_entry[])
 						}
 
 						/* check the character following the integer */
-						if ((*endptr != ';') && (*endptr != '\0') && !isspace((unsigned char)*endptr) && (*endptr != '}'))
+						if ((*endptr != ';') && (*endptr != ',') && (*endptr != '\0') && !isspace((unsigned char)*endptr) && (*endptr != '}'))
 						{
 							fprintf(stderr, "invalid character '%c' after integer\n", *endptr);
 							exit(1);
