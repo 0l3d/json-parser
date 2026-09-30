@@ -9,27 +9,43 @@ int main(int argc, char *argv[])
 
 	const char *file_path = argv[1];	/* will segfault if missing args */
 
-	json_data program_name =
+	json_data country =
 	{
 		NULL,
 		STRING,
-		"program-name",
+		"country",
 		NULL
 	};
-	json_data indenting =
+	json_data currency =
+	{
+		NULL,
+		STRING,
+		"currency",
+		NULL
+	};
+	json_data calling_code =
+	{
+		NULL,
+		STRING,
+		"calling code",
+		NULL
+	};
+	json_data population =
 	{
 		NULL,
 		INTEGER,
-		"indenting",
+		"population",
 		NULL
 	};
 
 	json_data entries[2] = { 0 };
 
-	entries[0] = program_name;
-	entries[1] = indenting;
+	entries[0] = calling_code;
+	entries[1] = population;
+	entries[2] = currency;
+	entries[3] = country;
 
-	json_parse(file_path, 2, entries);
+	json_parse(file_path, 4, entries);
 
 	if (argc < 2)
 	{
