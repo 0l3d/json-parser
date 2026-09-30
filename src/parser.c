@@ -9,7 +9,7 @@ Bool verbose = True;
 int json_parse(const char *file_path, int num_entries, json_data json_entry[])
 {
 	FILE *fp = fopen(file_path, "r");
-	char *line;	/* used for storing the line buffer in the file */
+	char *line = NULL;	/* used for storing the line buffer in the file */
 
 	size_t total_allocations = 0;
 	size_t buffer_increment = STARTING_ALLOCATION;
@@ -166,7 +166,14 @@ int json_parse(const char *file_path, int num_entries, json_data json_entry[])
 						printf("entry : %d\n", current_entry);
 					}
 
-					/* TODO add check before casts */
+					if (str_size > INT32MAX)
+					{
+						fprintf(stderr, "Avoided integer overflow in json_parse()\n");
+						fprintf(stderr, "%lu is greater than the upper bound: %d\n", str_size, INT32MAX);
+						/* TODO add failure boolean for freeing all buffers and exiting safely */
+						break;
+					}
+
 					i += (int)str_size + 1;
 					start_quote_index = 0;
 					open_quote = False;
@@ -189,7 +196,15 @@ int json_parse(const char *file_path, int num_entries, json_data json_entry[])
 						memcpy(key_value, line + start_quote_index, str_size);
 						key_value[str_size] = '\0';
 						printf("Value of [%s]: %s\n", json_entry[current_entry].key_value, key_value);
-						/* TODO add check before casts */
+
+						if (str_size > INT32MAX)
+						{
+							fprintf(stderr, "Avoided integer overflow in json_parse()\n");
+							fprintf(stderr, "%lu is greater than the upper bound: %d\n", str_size, INT32MAX);
+							/* TODO add failure boolean for freeing all buffers and exiting safely */
+							break;
+						}
+
 						i += (int)str_size + 1;
 						key_specified = False;
 					}
