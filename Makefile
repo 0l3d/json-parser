@@ -1,6 +1,6 @@
 CC = cc
 
-filenames := main parser checks compare
+filenames := main parser checks compare memory
 src_fpaths = $(addprefix src/, $(filenames))
 SRCS = $(addsuffix .c, $(src_fpaths))
 FLAGS = -Wall -Wextra -Wconversion -Wpedantic -std=c89 -Wshadow -Wswitch-enum
