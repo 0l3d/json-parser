@@ -19,6 +19,7 @@
 /* checks.c */
 	void file_check(FILE *file_path, const char *filename);
 	int32_t to_int32(int64_t input);
+	uint32_t to_uint32(uint64_t input);
 
 /* integers */
 	uint8_t parse_integer(const char *str, int64_t *result);
