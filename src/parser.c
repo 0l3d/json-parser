@@ -16,7 +16,6 @@ int json_parse(const char *file_path, int num_entries, json_data json_entry[])
 
 	Bool open_quote = False;
 	int start_quote_index = 0;
-	int ending_quote_index = 0;
 
 	int j = 0; /* shared iterator (must be set to 0 after use) */
 	int i = 0;	/* used for the current char */
