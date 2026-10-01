@@ -6,6 +6,66 @@
 
 const Bool verbose = True;
 
+
+/* Handles recursive parsing for nested JSON arrays.
+ * Parsing Algorithm:
+ * '[' -> find the next comma -> ',' -> extract the value between commas or brackets
+ * -> recognize the type -> add element to array variable with the detected type
+ * -> loop until ']' is encountered
+ * -> return the newly allocated array
+ */
+/* For now, I only parse 2 array elements. */
+size_t json_array_parser(json_data *content, char* line, size_t c_pos) {
+        size_t i = c_pos + 1;
+        json_value buffer;
+        size_t total_values = 0;
+        size_t str_size = 0;
+        Bool reached_end = False; 
+        /* Only 2 for now. */
+        content->content->array = smalloc(3 * sizeof(json_value));
+        while (line[i] != '\0' && reached_end == False) 
+        {
+            switch (line[i]) 
+            {
+                case '[':
+                    /* recursion */
+                    break;
+                case ']':
+                    /* The last element could be any type, but for now I am only adding strings. */
+                    content->content->array[total_values].type = STRING;
+                    content->content->array[total_values++].data.string = buffer.data.string;
+                    i++;
+                    reached_end = True;
+                    content->content->array[total_values].type = UNKNOWN;
+                    /* The last element is set to UNKNOWN to mark the end of the array. */
+                    break;
+                case '{':
+                    /* OBJECT */ 
+                    break;
+                case '}':
+                    /* OBJECT */
+                    break;
+                case '"':
+                    /* STRING */ 
+                    buffer.type = STRING;
+                    i++;
+                    buffer.data.string = str_content_alloc(line, &i, &str_size);
+                    break;
+                case ',':
+                    /* Flush buffer into content array and move to the next item. */
+                    content->content->array[total_values].type = STRING;
+                    content->content->array[total_values++].data.string = buffer.data.string;
+                    break;
+                default:    
+                    /* INTEGER */
+                    break;
+            }
+            i++;
+        }
+        return i;
+}
+
+
 int json_parse(const char *file_path, uint32_t num_entries, json_data json_entry[])
 {
 	/* json_state is an enum defined in src/enums.h
@@ -20,8 +80,7 @@ int json_parse(const char *file_path, uint32_t num_entries, json_data json_entry
 
 	size_t start_quote_index = 0;
 
-	unsigned int i = 0;	/* used for the current char */
-
+	size_t i = 0;	/* used for the current char */
 	size_t str_size = 0;
 	char *key_value = NULL;	/* TODO fix the thousands of memory leaks/lost pointers */
 	char *content = NULL;	/* TODO fix the thousands of memory leaks/lost pointers */
@@ -100,11 +159,15 @@ int json_parse(const char *file_path, uint32_t num_entries, json_data json_entry
 
 		switch (line[i])
 		{
+        /* Arrays: ["California", 1, true, null, { Object }] */
+        /* This Array parser is only parsing string, number values. */
 		case '[':
-			/* start of array definition */
-			break;
+            i = json_array_parser(&json_entry[current_entry], line, i);
+            state = EXPECT_KEY;
+            num_lookups++;
+            break; 
 		case ']':
-			/* end of array definition */
+			/* end of the array */
 			break;
 		case '}':
 			/* end of object definition */
@@ -116,9 +179,7 @@ int json_parse(const char *file_path, uint32_t num_entries, json_data json_entry
 			/* comma for seperating */
 			break;
 		case ';':
-
 			break;
-
 		case '=':	/* both characters are accepted */
 		case ':':
 			if (state == EXPECT_COLON)
@@ -158,7 +219,6 @@ int json_parse(const char *file_path, uint32_t num_entries, json_data json_entry
 					json_entry[current_entry].key_value = key_value;
 					printf("entry : %d has been found under the name \"%s\"\n", current_entry, key_value);
 					state = EXPECT_COLON;
-					num_lookups++;
 				}
 				else
 				{
@@ -184,7 +244,7 @@ int json_parse(const char *file_path, uint32_t num_entries, json_data json_entry
 			/* full expression is only true if the start_quote_index is 0 */
 			if ((!start_quote_index) && state == EXPECT_CONTENT)
 			{
-				if (json_entry[current_entry].data_type == STRING)
+				if (json_entry[current_entry].type.data_type == STRING && json_entry[current_entry].type.content_type == VALUE)
 				{
 					if (line[i] == '"')
 					{
@@ -194,24 +254,29 @@ int json_parse(const char *file_path, uint32_t num_entries, json_data json_entry
 					/* get the value in the line & store it inside of content string */
 					content = str_content_alloc(line, &start_quote_index, &str_size);
 
-					printf("Value of [%s]: %s\n", json_entry[current_entry].key_value, content);
+                    json_entry[current_entry].content->type = VALUE;
+                    json_entry[current_entry].content->value.data.string = content;
 
 					i += (to_uint32(str_size) + 1);
 					state = EXPECT_KEY;
+					num_lookups++;
 				}
-				else if (json_entry[current_entry].data_type == INTEGER)
+				else if (json_entry[current_entry].type.data_type == INTEGER && json_entry[current_entry].type.content_type == VALUE)
 				{
 					/* TODO store the information (buffer was allocated) somewhere in
 					 * order to prevent memory leaks */
-					json_entry[current_entry].content = malloc(sizeof(int64_t));
-					i += parse_integer(line + i, json_entry[current_entry].content);
 
+                    json_entry[current_entry].content->type = VALUE;
+					/* Why?
+                     * json_entry[current_entry].content = malloc(sizeof(int64_t)); */
+					i += parse_integer(line + i, &json_entry[current_entry].content->value.data.integer);
 					if (verbose)
 						printf("integer value -> %ld\n", *(int64_t*)(json_entry[current_entry].content));
 
 					state = EXPECT_KEY;
+					num_lookups++;
 				}
-				else if (json_entry[current_entry].data_type == FLOAT)
+				else if (json_entry[current_entry].type.data_type == FLOAT && json_entry[current_entry].type.content_type == VALUE)
 				{
 					/* currently unsupported */
 					if (line[i] == '"')
@@ -220,7 +285,7 @@ int json_parse(const char *file_path, uint32_t num_entries, json_data json_entry
 						exit(1);
 					}
 				}
-				else if (json_entry[current_entry].data_type == BOOL)
+				else if (json_entry[current_entry].type.data_type == BOOL && json_entry[current_entry].type.content_type == VALUE)
 				{
 					/* currently unsupported */
 				}
@@ -229,11 +294,12 @@ int json_parse(const char *file_path, uint32_t num_entries, json_data json_entry
 		i++;
 	}
 
-	if (key_value != NULL)
-	{
-		free(key_value);
-	}
 	free(line);
 
 	return 0;
 }
+
+
+
+
+

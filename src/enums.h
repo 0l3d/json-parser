@@ -1,5 +1,6 @@
 typedef enum
 {
+    UNKNOWN = 0,
 	INTEGER,
 	FLOAT,
 	STRING,
@@ -19,3 +20,11 @@ typedef enum
 	EXPECT_COLON,
 	EXPECT_CONTENT
 } json_state;
+
+
+typedef enum 
+{
+    VALUE,
+    ARRAY,
+    OBJECT
+} json_content_type;
