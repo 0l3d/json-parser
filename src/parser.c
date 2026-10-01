@@ -152,6 +152,7 @@ int json_parse(const char *file_path, int num_entries, json_data json_entry[])
 						exit(EXIT_FAILURE);
 					}
 
+					/* REPLACE WITH FN */
 					j = 0;
 					do {
 						str_size = (unsigned)to_int32((int64_t)strcspn(line + start_quote_index + j, "\""));
