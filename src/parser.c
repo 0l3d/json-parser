@@ -86,159 +86,153 @@ int json_parse(const char *file_path, uint32_t num_entries, json_data json_entry
 
 	printf("CODE: %s\n", line);
 
-	do
-	{
-		i = 0;
-		key_value = NULL;
-		/* only valid since line is an array of chars */
+	i = 0;
+	key_value = NULL;
 
-		while (line[i] != '\0')
+	while (line[i] != '\0' && num_lookups < num_entries)
+	{
+		if (isspace((unsigned char)line[i]))
+		{	/* isspace checks every whitespace */
+			i++;
+			continue;
+		}
+
+		switch (line[i])
 		{
-			if (isspace((unsigned char)line[i]))
-			{	/* isspace checks every whitespace */
-				i++;
-				continue;
+		case '[':
+			/* start of array definition */
+			break;
+		case ']':
+			/* end of array definition */
+			break;
+		case '}':
+			/* end of object definition */
+			break;
+		case '{':
+			/* start of object definition */
+			break;
+		case ',':
+			/* comma for seperating */
+			break;
+		case ';':
+
+			break;
+
+		case '=':	/* both characters are accepted */
+		case ':':
+			if (state == EXPECT_COLON)
+			{
+				state = EXPECT_CONTENT;
+			}
+			else if (state == EXPECT_KEY)
+			{
+				fprintf(stderr, "Syntax error in JSON, a colon is only expected to be after a key_value\n");
+				/* TODO print context for easy debugging */
+				exit(1);
+			}
+			else
+			{
+				fprintf(stderr, "Syntax error in JSON, expected content (value).\nDouble colons are not allowed */ \n");
+				exit(1);
 			}
 
-			switch (line[i])
+			break;
+		case '"':
+			if (state == EXPECT_KEY)
 			{
-			case '[':
-				/* start of array definition */
-				break;
-			case ']':
-				/* end of array definition */
-				break;
-			case '}':
-				/* end of object definition */
-				break;
-			case '{':
-				/* start of object definition */
-				break;
-			case ',':
-				/* comma for seperating */
-				break;
-			case ';':
+				start_quote_index = i + 1;
 
-				break;
-
-			case '=':	/* both characters are accepted */
-			case ':':
-				if (state == EXPECT_COLON)
+				key_value = str_content_alloc(line, &start_quote_index);
+				if (verbose)
 				{
-					state = EXPECT_CONTENT;
+					printf("key value -> %s\n", key_value);	/* prints the key_value as a test */
 				}
-				else if (state == EXPECT_KEY)
+
+				valid_key_found = False;
+				/* TODO validate num_entries being unsigned or edit fn declaration */
+				current_entry = key_match(&valid_key_found, key_value, (unsigned)num_entries, json_entry);
+
+				if (valid_key_found)
 				{
-					fprintf(stderr, "Syntax error in JSON, a colon is only expected to be after a key_value\n");
-					/* TODO print context for easy debugging */
-					exit(1);
+					json_entry[current_entry].key_value = key_value;
+					printf("entry : %d has been found under the name \"%s\"\n", current_entry, key_value);
+					state = EXPECT_COLON;
+					num_lookups++;
 				}
 				else
 				{
-					fprintf(stderr, "Syntax error in JSON, expected content (value).\nDouble colons are not allowed */ \n");
+					fprintf(stderr, "Key not found: \"%s\"\n", key_value);
+					/* TODO handle memory leaks */
 					exit(1);
 				}
 
-				break;
-			case '"':
-				if (state == EXPECT_KEY)
+				if (str_size > INT32MAX)
 				{
-					start_quote_index = i + 1;
+					fprintf(stderr, "Avoided integer overflow in json_parse()\n");
+					fprintf(stderr, "%lu is greater than the upper bound: %d\n", str_size, INT32MAX);
+					/* TODO add failure boolean for freeing all buffers and exiting safely */
+					break;
+				}
 
-					key_value = str_content_alloc(line, &start_quote_index);
-					if (verbose)
+				i += (to_uint32(str_size) + 1);
+				start_quote_index = 0;
+				break;
+			}
+			__attribute__ ((fallthrough));
+		default:
+			/* full expression is only true if the start_quote_index is 0 */
+			if ((!start_quote_index) && state == EXPECT_CONTENT)
+			{
+				if (json_entry[current_entry].data_type == STRING)
+				{
+					if (line[i] == '"')
 					{
-						printf("key value -> %s\n", key_value);	/* prints the key_value as a test */
+						start_quote_index = i + 1;
 					}
 
-					valid_key_found = False;
-					/* TODO validate num_entries being unsigned or edit fn declaration */
-					current_entry = key_match(&valid_key_found, key_value, (unsigned)num_entries, json_entry);
+					/* get the value in the line & store it inside of content string */
+					content = str_content_alloc(line, &start_quote_index);
 
-					if (valid_key_found)
+					printf("Value of [%s]: %s\n", json_entry[current_entry].key_value, content);
+
+					i += (to_uint32(str_size) + 1);
+					state = EXPECT_KEY;
+				}
+				else if (json_entry[current_entry].data_type == INTEGER)
+				{
+					if (line[i] == '"')
 					{
-						json_entry[current_entry].key_value = key_value;
-						printf("entry : %d has been found under the name \"%s\"\n", current_entry, key_value);
-						state = EXPECT_COLON;
-						num_lookups++;
-					}
-					else
-					{
-						fprintf(stderr, "Key not found: \"%s\"\n", key_value);
-						/* TODO handle memory leaks */
+						fprintf(stderr, "unexpected symbol '\"' in integer type\n");
 						exit(1);
 					}
 
-					if (str_size > INT32MAX)
-					{
-						fprintf(stderr, "Avoided integer overflow in json_parse()\n");
-						fprintf(stderr, "%lu is greater than the upper bound: %d\n", str_size, INT32MAX);
-						/* TODO add failure boolean for freeing all buffers and exiting safely */
-						break;
-					}
+					/* TODO store the information (buffer was allocated) somewhere in
+					 * order to prevent memory leaks */
+					json_entry[current_entry].content = malloc(sizeof(int64_t));
+					i += parse_integer(line + i, json_entry[current_entry].content);
 
-					i += (to_uint32(str_size) + 1);
-					start_quote_index = 0;
-					break;
+					if (verbose)
+						printf("integer value -> %ld\n", *(int64_t*)(json_entry[current_entry].content));
+
+					state = EXPECT_KEY;
 				}
-				__attribute__ ((fallthrough));
-			default:
-				/* full expression is only true if the start_quote_index is 0 */
-				if ((!start_quote_index) && state == EXPECT_CONTENT)
+				else if (json_entry[current_entry].data_type == FLOAT)
 				{
-					if (json_entry[current_entry].data_type == STRING)
+					/* currently unsupported */
+					if (line[i] == '"')
 					{
-						if (line[i] == '"')
-						{
-							start_quote_index = i + 1;
-						}
-
-						/* get the value in the line & store it inside of content string */
-						content = str_content_alloc(line, &start_quote_index);
-
-						printf("Value of [%s]: %s\n", json_entry[current_entry].key_value, content);
-
-						i += (to_uint32(str_size) + 1);
-						state = EXPECT_KEY;
+						fprintf(stderr, "unexpected symbol '%c' in floating type\n", line[i]);
+						exit(1);
 					}
-					else if (json_entry[current_entry].data_type == INTEGER)
-					{
-						if (line[i] == '"')
-						{
-							fprintf(stderr, "unexpected symbol '\"' in integer type\n");
-							exit(1);
-						}
-
-						/* TODO store the information (buffer was allocated) somewhere in
-						 * order to prevent memory leaks */
-						json_entry[current_entry].content = malloc(sizeof(int64_t));
-						i += parse_integer(line + i, json_entry[current_entry].content);
-
-						if (verbose)
-							printf("integer value -> %ld\n", *(int64_t*)(json_entry[current_entry].content));
-
-						state = EXPECT_KEY;
-					}
-					else if (json_entry[current_entry].data_type == FLOAT)
-					{
-						/* currently unsupported */
-						if (line[i] == '"')
-						{
-							fprintf(stderr, "unexpected symbol '%c' in floating type\n", line[i]);
-							exit(1);
-						}
-					}
-					else if (json_entry[current_entry].data_type == BOOL)
-					{
-						/* currently unsupported */
-					}
+				}
+				else if (json_entry[current_entry].data_type == BOOL)
+				{
+					/* currently unsupported */
 				}
 			}
-
-			i++;
 		}
-
-	} while (num_lookups <= num_entries);
+		i++;
+	}
 
 	if (key_value != NULL)
 	{
