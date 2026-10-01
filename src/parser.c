@@ -6,28 +6,32 @@
 
 const Bool verbose = True;
 
-int json_parse(const char *file_path, int num_entries, json_data json_entry[])
+int json_parse(const char *file_path, uint32_t num_entries, json_data json_entry[])
 {
+	/* json_state is an enum defined in src/enums.h
+	 * it is used in order to store the current parsing mode (or the type of value expected */
+	json_state state = EXPECT_KEY;
+
 	FILE *fp = fopen(file_path, "r");
 	char *line = NULL;	/* used for storing the line buffer in the file */
 
 	size_t total_allocations = 0;
 	size_t buffer_increment = STARTING_ALLOCATION;
 
-	Bool open_quote = False;
 	size_t start_quote_index = 0;
 
 	unsigned int i = 0;	/* used for the current char */
 
 	size_t str_size = 0;
-	char *key_value = NULL;
+	char *key_value = NULL;	/* TODO fix the thousands of memory leaks/lost pointers */
+	char *content = NULL;	/* TODO fix the thousands of memory leaks/lost pointers */
 
 	char buf[LINE_LEN];
 	size_t index;
 	char *p;
 	void *tmp;		/* for reallocs */
 	size_t len;		/* for len operations */
-	int num_lookups = 0;	/* counts the number of entries looked up exits when
+	uint32_t num_lookups = 0;	/* (iterator) counts the number of entries looked up exits when
 					   everything is done */
 
 	/* relative to the current entry (the key value being looked up
@@ -37,10 +41,7 @@ int json_parse(const char *file_path, int num_entries, json_data json_entry[])
 	uint32_t current_entry = 0;	/* store the current entry being looked up */
 	Bool valid_key_found = False;	/* only true when a key is matched example: 
 					   if we're looking for "name" and we found it,
-					   valid_key_found is set to true*/
-	Bool valid_key_expr = False;	/* This bool is only true when valid_key_found is true (see above)
-					   and if we found a colon (':') following the valid key */
-
+					   valid_key_found is set to true */
 
 	file_check(fp, file_path);	/* checks for fp being NULL */
 
@@ -87,7 +88,6 @@ int json_parse(const char *file_path, int num_entries, json_data json_entry[])
 
 	do
 	{
-		open_quote = False;
 		i = 0;
 		key_value = NULL;
 		/* only valid since line is an array of chars */
@@ -118,31 +118,32 @@ int json_parse(const char *file_path, int num_entries, json_data json_entry[])
 				/* comma for seperating */
 				break;
 			case ';':
-				if (!(i > start_quote_index + str_size))
-				{
-					if (open_quote || key_value == NULL)
-					{
-						fprintf(stderr, "Quotes cannot span across multiple lines\n");
-						fprintf(stderr, "The following quote is never ended: %s\n", line + start_quote_index - 1);
-						exit(1);
-					}
-				}
-				i++;
-				continue;
+
+				break;
 
 			case '=':	/* both characters are accepted */
 			case ':':
-				if (valid_key_found)
-					valid_key_expr = True;
+				if (state == EXPECT_COLON)
+				{
+					state = EXPECT_CONTENT;
+				}
+				else if (state == EXPECT_KEY)
+				{
+					fprintf(stderr, "Syntax error in JSON, a colon is only expected to be after a key_value\n");
+					/* TODO print context for easy debugging */
+					exit(1);
+				}
+				else
+				{
+					fprintf(stderr, "Syntax error in JSON, expected content (value).\nDouble colons are not allowed */ \n");
+					exit(1);
+				}
+
 				break;
 			case '"':
-				if (!valid_key_expr)
+				if (state == EXPECT_KEY)
 				{
-					if (!open_quote)
-					{
-						open_quote = True;
-						start_quote_index = i + 1;
-					}
+					start_quote_index = i + 1;
 
 					key_value = str_content_alloc(line, &start_quote_index);
 					if (verbose)
@@ -158,6 +159,14 @@ int json_parse(const char *file_path, int num_entries, json_data json_entry[])
 					{
 						json_entry[current_entry].key_value = key_value;
 						printf("entry : %d has been found under the name \"%s\"\n", current_entry, key_value);
+						state = EXPECT_COLON;
+						num_lookups++;
+					}
+					else
+					{
+						fprintf(stderr, "Key not found: \"%s\"\n", key_value);
+						/* TODO handle memory leaks */
+						exit(1);
 					}
 
 					if (str_size > INT32MAX)
@@ -170,14 +179,12 @@ int json_parse(const char *file_path, int num_entries, json_data json_entry[])
 
 					i += (to_uint32(str_size) + 1);
 					start_quote_index = 0;
-					open_quote = False;
-					num_lookups++;
 					break;
 				}
 				__attribute__ ((fallthrough));
 			default:
 				/* full expression is only true if the start_quote_index is 0 */
-				if ((!start_quote_index) && valid_key_expr)
+				if ((!start_quote_index) && state == EXPECT_CONTENT)
 				{
 					if (json_entry[current_entry].data_type == STRING)
 					{
@@ -185,14 +192,14 @@ int json_parse(const char *file_path, int num_entries, json_data json_entry[])
 						{
 							start_quote_index = i + 1;
 						}
-						str_size = strcspn(line + start_quote_index, "\"");
-						key_value = smalloc(str_size + 1);
-						memcpy(key_value, line + start_quote_index, str_size);
-						key_value[str_size] = '\0';
-						printf("Value of [%s]: %s\n", json_entry[current_entry].key_value, key_value);
+
+						/* get the value in the line & store it inside of content string */
+						content = str_content_alloc(line, &start_quote_index);
+
+						printf("Value of [%s]: %s\n", json_entry[current_entry].key_value, content);
 
 						i += (to_uint32(str_size) + 1);
-						valid_key_expr = False;
+						state = EXPECT_KEY;
 					}
 					else if (json_entry[current_entry].data_type == INTEGER)
 					{
@@ -202,8 +209,6 @@ int json_parse(const char *file_path, int num_entries, json_data json_entry[])
 							exit(1);
 						}
 
-						/* TODO store value in buffer allocated (sizeof(uint64_t) ) */
-
 						/* TODO store the information (buffer was allocated) somewhere in
 						 * order to prevent memory leaks */
 						json_entry[current_entry].content = malloc(sizeof(int64_t));
@@ -211,6 +216,8 @@ int json_parse(const char *file_path, int num_entries, json_data json_entry[])
 
 						if (verbose)
 							printf("integer value -> %ld\n", *(int64_t*)(json_entry[current_entry].content));
+
+						state = EXPECT_KEY;
 					}
 					else if (json_entry[current_entry].data_type == FLOAT)
 					{
@@ -231,7 +238,7 @@ int json_parse(const char *file_path, int num_entries, json_data json_entry[])
 			i++;
 		}
 
-	} while (num_entries > num_lookups);
+	} while (num_lookups <= num_entries);
 
 	if (key_value != NULL)
 	{

@@ -5,26 +5,28 @@
 
 #include "json_data.h"
 
-/* parse.c */
-	int json_parse(const char *file_path, int num_entries, json_data json_entry[]);
+/* src/parse.c */
+	int json_parse(const char *file_path, uint32_t num_entries, json_data json_entry[]);
+	/* json_parse expects an array of data composed of structs of json_data type (see src/json_data.h ) */
 
-/* compare.c */
+/* src/compare.c */
 	Bool str_compare(const char *arg, const char *str);
 	uint32_t key_match(Bool *success, const char *key_value, uint32_t num_entries, json_data json_entry[]);
 
-/* memory.c */
+/* src/memory.c */
 	void *srealloc(void *ptr, size_t size);
 	void *smalloc(size_t size);
 
-/* checks.c */
+/* src/checks.c */
 	void file_check(FILE *file_path, const char *filename);
 	int32_t to_int32(int64_t input);
 	uint32_t to_uint32(uint64_t input);
 
-/* integers */
+/* src/integer_parsing.c */
 	uint8_t parse_integer(const char *str, int64_t *result);
 
-char *str_content_alloc(char *line, size_t *starting_index);
+/* src/buffers.c */
+	char *str_content_alloc(char *line, size_t *starting_index);
 
 
 #define INT16MAX (32767)
