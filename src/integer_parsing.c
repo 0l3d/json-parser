@@ -20,7 +20,12 @@ uint8_t parse_integer(const char *str, int64_t *result)
 	}
 
 	/* check the character following the integer */
-	if ((*endptr != ';') && (*endptr != ',') && (*endptr != '\0') && !isspace((unsigned char)*endptr) && (*endptr != '}'))
+	if (
+			(*endptr != ';') && 
+			(*endptr != ',') && 
+			(*endptr != '\0') && 
+			!isspace((unsigned char)*endptr) && 
+			(*endptr != '}'))
 	{
 		fprintf(stderr, "invalid character '%c' after integer\n", *endptr);
 		/* TODO handle memory leaks on fail */

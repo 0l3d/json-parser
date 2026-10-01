@@ -45,7 +45,7 @@ int main(int argc, char *argv[])
 		NULL
 	};
 
-	json_data entries[2] = { 0 };
+	json_data entries[5] = { 0 };
 
 	entries[0] = calling_code;
 	entries[1] = population;
