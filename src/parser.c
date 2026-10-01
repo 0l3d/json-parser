@@ -152,28 +152,7 @@ int json_parse(const char *file_path, int num_entries, json_data json_entry[])
 						exit(EXIT_FAILURE);
 					}
 
-					/* REPLACE WITH FN */
-					j = 0;
-					do {
-						str_size = (unsigned)to_int32((int64_t)strcspn(line + start_quote_index + j, "\""));
-						if (line[(unsigned)start_quote_index + str_size + (unsigned)j] == '\\')
-						{
-							/* the quote is escaped with a backslash "\"text\"" */
-							j++;
-							continue;
-						}
-						else
-						{
-							break;
-						}
-					} while (1);
-
-					if (key_value != NULL)
-					{
-						free(key_value);
-					}
-
-					key_value = smalloc(str_size + 1);
+					key_value = str_content_alloc(line, &start_quote_index);
 
 					/* copy bytes from line into the key_value buffer
 					 * memcpy() will only copy 'str_size' bytes into the key_value buffer */
