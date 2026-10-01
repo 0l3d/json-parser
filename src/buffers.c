@@ -3,17 +3,19 @@
 char *str_content_alloc(char *line, size_t *starting_index)
 {
 	char *str = NULL;
-	size_t j = 1;
+	size_t j = 0;
 	size_t str_size = 0;
-	size_t end_index = 0;
-	printf("str:%sline end\n", line);
-	printf("str:%sline end\n", line + *(starting_index));
+	size_t end_index = *(starting_index);
+	size_t ret = 0;
+
+	printf("\n\n");
 	do {
-		end_index += strcspn(line + *(starting_index) + j, "\"");
+		ret = strcspn(line + end_index, "\"");
+		end_index += ret + j;
+
+		printf("character %c\n", line[end_index - 1]);
 		if (line[end_index - 1] == '\\')
 		{
-			/* the quote is escaped with a backslash "\"text\"" */
-			printf("%ld str \'%s\n\'", j, line + end_index);
 			j++;
 			continue;
 		}
@@ -21,6 +23,7 @@ char *str_content_alloc(char *line, size_t *starting_index)
 		{
 			break;
 		}
+
 	} while (1);
 
 	str_size = end_index + j;

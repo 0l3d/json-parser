@@ -23,6 +23,8 @@
 /* integers */
 	uint8_t parse_integer(const char *str, int64_t *result);
 
+char *str_content_alloc(char *line, size_t *starting_index);
+
 
 #define INT16MAX (32767)
 #define INT16MIN (-32767)
