@@ -26,7 +26,7 @@
 	uint8_t parse_integer(const char *str, int64_t *result);
 
 /* src/buffers.c */
-	char *str_content_alloc(char *line, size_t *starting_index);
+	char *str_content_alloc(char *line, size_t *starting_index, size_t *size);
 
 
 #define INT16MAX (32767)

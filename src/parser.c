@@ -82,6 +82,7 @@ int json_parse(const char *file_path, uint32_t num_entries, json_data json_entry
 		line[len + index + 1] = '\0';
 	}
 	fclose(fp);
+
 	/* This section turns a multi-line file into one line. */
 
 	printf("CODE: %s\n", line);
@@ -142,7 +143,7 @@ int json_parse(const char *file_path, uint32_t num_entries, json_data json_entry
 			{
 				start_quote_index = i + 1;
 
-				key_value = str_content_alloc(line, &start_quote_index);
+				key_value = str_content_alloc(line, &start_quote_index, &str_size);
 				if (verbose)
 				{
 					printf("key value -> %s\n", key_value);	/* prints the key_value as a test */
@@ -191,7 +192,7 @@ int json_parse(const char *file_path, uint32_t num_entries, json_data json_entry
 					}
 
 					/* get the value in the line & store it inside of content string */
-					content = str_content_alloc(line, &start_quote_index);
+					content = str_content_alloc(line, &start_quote_index, &str_size);
 
 					printf("Value of [%s]: %s\n", json_entry[current_entry].key_value, content);
 
@@ -200,12 +201,6 @@ int json_parse(const char *file_path, uint32_t num_entries, json_data json_entry
 				}
 				else if (json_entry[current_entry].data_type == INTEGER)
 				{
-					if (line[i] == '"')
-					{
-						fprintf(stderr, "unexpected symbol '\"' in integer type\n");
-						exit(1);
-					}
-
 					/* TODO store the information (buffer was allocated) somewhere in
 					 * order to prevent memory leaks */
 					json_entry[current_entry].content = malloc(sizeof(int64_t));
