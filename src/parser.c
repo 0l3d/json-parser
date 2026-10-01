@@ -15,10 +15,9 @@ int json_parse(const char *file_path, int num_entries, json_data json_entry[])
 	size_t buffer_increment = STARTING_ALLOCATION;
 
 	Bool open_quote = False;
-	int start_quote_index = 0;
+	size_t start_quote_index = 0;
 
-	int j = 0; /* shared iterator (must be set to 0 after use) */
-	int i = 0;	/* used for the current char */
+	unsigned int i = 0;	/* used for the current char */
 
 	size_t str_size = 0;
 	char *key_value = NULL;
@@ -119,7 +118,7 @@ int json_parse(const char *file_path, int num_entries, json_data json_entry[])
 				/* comma for seperating */
 				break;
 			case ';':
-				if (!(i > start_quote_index + (signed)str_size))
+				if (!(i > start_quote_index + str_size))
 				{
 					if (open_quote || key_value == NULL)
 					{
@@ -143,13 +142,6 @@ int json_parse(const char *file_path, int num_entries, json_data json_entry[])
 					{
 						open_quote = True;
 						start_quote_index = i + 1;
-					}
-
-					if (start_quote_index < 0)
-					{
-						fprintf(stderr, "Invalid value in start quote index");
-						/* TODO handle memory leaks on error */
-						exit(EXIT_FAILURE);
 					}
 
 					key_value = str_content_alloc(line, &start_quote_index);
@@ -178,7 +170,7 @@ int json_parse(const char *file_path, int num_entries, json_data json_entry[])
 						break;
 					}
 
-					i += (to_int32((int64_t)str_size) + 1);
+					i += (to_uint32(str_size) + 1);
 					start_quote_index = 0;
 					open_quote = False;
 					num_lookups++;
@@ -201,7 +193,7 @@ int json_parse(const char *file_path, int num_entries, json_data json_entry[])
 						key_value[str_size] = '\0';
 						printf("Value of [%s]: %s\n", json_entry[current_entry].key_value, key_value);
 
-						i += (to_int32((int64_t)str_size) + 1);
+						i += (to_uint32(str_size) + 1);
 						valid_key_expr = False;
 					}
 					else if (json_entry[current_entry].data_type == INTEGER)
