@@ -4,7 +4,7 @@
 #define LINE_LEN 4096
 #define STARTING_ALLOCATION 512
 
-Bool verbose = True;
+const Bool verbose = True;
 
 int json_parse(const char *file_path, int num_entries, json_data json_entry[])
 {
@@ -145,12 +145,10 @@ int json_parse(const char *file_path, int num_entries, json_data json_entry[])
 					}
 
 					key_value = str_content_alloc(line, &start_quote_index);
-
-					/* copy bytes from line into the key_value buffer
-					 * memcpy() will only copy 'str_size' bytes into the key_value buffer */
-					memcpy(key_value, line + start_quote_index, str_size);
-					key_value[str_size] = '\0';
-					printf("key value -> %s\n", key_value);	/* prints the key_value as a test */
+					if (verbose)
+					{
+						printf("key value -> %s\n", key_value);	/* prints the key_value as a test */
+					}
 
 					valid_key_found = False;
 					/* TODO validate num_entries being unsigned or edit fn declaration */

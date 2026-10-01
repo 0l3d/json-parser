@@ -12,3 +12,10 @@ typedef enum
 	False = 0,
 	True = 1
 } Bool;
+
+typedef enum
+{
+	EXPECT_KEY,
+	EXPECT_COLON,
+	EXPECT_CONTENT
+} json_state;
