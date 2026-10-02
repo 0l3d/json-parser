@@ -23,6 +23,7 @@ uint8_t parse_integer(const char *str, int64_t *result)
 	if (
 			(*endptr != ';') && 
 			(*endptr != ',') && 
+			(*endptr != ']') && 
 			(*endptr != '\0') && 
 			!isspace((unsigned char)*endptr) && 
 			(*endptr != '}'))
@@ -36,8 +37,11 @@ uint8_t parse_integer(const char *str, int64_t *result)
 	digit_size = 0;
 	temp_digit = value;
 	if (temp_digit == 0)
+	{
 		digit_size = 1;
+	}
 	else
+	{
 		while (temp_digit != 0)
 		{
 			digit_size++;
@@ -45,6 +49,7 @@ uint8_t parse_integer(const char *str, int64_t *result)
 			/* divide by 10 for base 10 
 			 * no support planned for other bases (2, 8, 16 ...) */
 		}
+	}
 
 	*result = (int64_t)value;
 	return digit_size;	/* in characters (base 10 only) */
