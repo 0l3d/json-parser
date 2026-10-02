@@ -35,4 +35,6 @@ typedef struct
 				   { "name": "John" } "name" being the key_value */
 	json_content *content;
 } json_data;
+/* to access content we must do
+ * json_data[].content.value.data.(type[string, integer, ffloat or boolean]) */
 

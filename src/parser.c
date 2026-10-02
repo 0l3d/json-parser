@@ -213,7 +213,9 @@ int json_parse(const char *file_path, uint32_t num_entries, json_data json_entry
 					 * json_entry[current_entry].content = malloc(sizeof(int64_t)); */
 					i += parse_integer(line + i, &json_entry[current_entry].content->value.data.integer);
 					if (verbose)
-						printf("integer value -> %ld\n", *(int64_t*)(json_entry[current_entry].content));
+					{
+						printf("integer value -> %ld\n", json_entry[current_entry].content->value.data.integer);
+					}
 
 					state = EXPECT_KEY;
 					num_lookups++;
