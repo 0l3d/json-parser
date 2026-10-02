@@ -1,5 +1,7 @@
 # json-parser
 
+A fast json parser written in C89
+
 (WIP)
 
 Supports

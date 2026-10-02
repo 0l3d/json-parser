@@ -26,13 +26,6 @@ void *srealloc(void *ptr, size_t size)
 		exit(EXIT_FAILURE);
 	}
 
-	if (ptr == NULL)
-	{
-		/* even though realloc() can handle NULL, we still print a warning for the developper */
-		fprintf(stderr, "Warning: pointer passed into srealloc() is NULL\n");
-		/* ptr = malloc(size);  malloc is used inside of realloc() instead */
-	}
-
 	ptr = realloc(ptr, size);	/* allocate memory */
 
 	if (ptr == NULL)
