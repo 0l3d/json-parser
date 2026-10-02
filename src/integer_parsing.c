@@ -9,6 +9,7 @@ uint8_t parse_integer(const char *str, int64_t *result)
 	uint8_t digit_size = 0;
 	int64_t temp_digit = 0;
 
+	/* convert from string to value (base 10) */
 	value = strtol(str, &endptr, 10);
 
 	/* no characters are valid */

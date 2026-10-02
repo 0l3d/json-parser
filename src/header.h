@@ -29,6 +29,9 @@
 /* src/buffers.c */
 	char *str_content_alloc(char *line, size_t *starting_index, size_t *size);
 
+/* src/arrays.c */
+	size_t json_array_parser(json_data *content, char *line, size_t c_pos);
+
 
 #define INT16MAX (32767)
 #define INT16MIN (-32767)
