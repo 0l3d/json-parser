@@ -16,37 +16,39 @@ int main(int argc, char *argv[])
 	json_data country =
 	{
 		NULL,
-        {ARRAY, NULL_VALUE},
+		{ ARRAY, NULL_VALUE },
 		"countries",
         NULL,
 	};
 	json_data cold =
 	{
 		NULL,
-        {VALUE, BOOL},
+		{ VALUE, BOOL },
 		"cold",
         NULL
 	};
 	json_data currency =
 	{
 		NULL,
-        {ARRAY, NULL_VALUE},
+		{ ARRAY, NULL_VALUE },
 		"currencies",
-        NULL
+		NULL
 	};
+
 	json_data calling_code =
 	{
 		NULL,
-        {VALUE, STRING},
+		{ VALUE, STRING },
 		"calling code",
-        NULL
+		NULL
 	};
+
 	json_data population =
 	{
 		NULL,
-        {VALUE, INTEGER},
+		{ VALUE, INTEGER },
 		"population",
-        NULL
+		NULL
 	};
     
 

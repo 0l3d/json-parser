@@ -1,5 +1,5 @@
 {
-	"countries": ["Canada", "United States"],
+	"countries": ["Canada\"CAS", "United States"],
 	"calling code": "+1-XXX-XXX-XXXX",
 	"population": 40467728,
 	"currencies": ["CAD", "USD"],
