@@ -132,12 +132,12 @@ int json_parse(const char *file_path, uint32_t num_entries, json_data json_entry
 			{
 				fprintf(stderr, "Syntax error in JSON, a colon is only expected to be after a key_value\n");
 				/* TODO print context for easy debugging */
-				exit(1);
+				exit(EXIT_FAILURE);
 			}
 			else
 			{
 				fprintf(stderr, "Syntax error in JSON, expected content (value).\nDouble colons are not allowed */ \n");
-				exit(1);
+				exit(EXIT_FAILURE);
 			}
 
 			break;
@@ -166,7 +166,7 @@ int json_parse(const char *file_path, uint32_t num_entries, json_data json_entry
 				{
 					fprintf(stderr, "Key not found: \"%s\"\n", key_value);
 					/* TODO handle memory leaks */
-					exit(1);
+					exit(EXIT_FAILURE);
 				}
 
 				if (str_size > INT32MAX)
