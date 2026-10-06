@@ -40,9 +40,13 @@ int json_parse(const char *file_path, uint32_t num_entries, json_data json_entry
 	 * value being looked up is name and the content associated with
 	 * the key value is "John" */
 	uint32_t current_entry = 0;	/* store the current entry being looked up */
-	Bool valid_key_found = False;	/* only true when a key is matched example: 
+	Bool key_failure = False;	/* only true when a key isn't matched example: 
 					   if we're looking for "name" and we found it,
-					   valid_key_found is set to true */
+					   key_failure is set to false */
+	Bool fail = True;	/* used for error checking in Bool parsing */
+
+	/* END of declaration section */
+
 
 	file_check(fp, file_path);	/* checks for fp being NULL */
 
@@ -152,11 +156,11 @@ int json_parse(const char *file_path, uint32_t num_entries, json_data json_entry
 					printf("key value -> %s\n", key_value);	/* prints the key_value as a test */
 				}
 
-				valid_key_found = False;
+				key_failure = False;
 				/* TODO validate num_entries being unsigned or edit fn declaration */
-				current_entry = key_match(&valid_key_found, key_value, (unsigned)num_entries, json_entry);
+				current_entry = key_match(&key_failure, key_value, (unsigned)num_entries, json_entry);
 
-				if (valid_key_found)
+				if (!key_failure)
 				{
 					json_entry[current_entry].key_value = key_value;
 					printf("entry : %d has been found under the name \"%s\"\n", current_entry, key_value);
@@ -231,7 +235,11 @@ int json_parse(const char *file_path, uint32_t num_entries, json_data json_entry
 				}
 				else if (json_entry[current_entry].type.data_type == BOOL && json_entry[current_entry].type.content_type == VALUE)
 				{
-					/* currently unsupported */
+					content = smalloc(sizeof(Bool));
+					*content = parse_bool(&fail, line + i);
+					json_entry[current_entry].content->value.data.boolean = *content;
+					free(content);
+					
 				}
 			}
 		}
