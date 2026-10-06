@@ -18,6 +18,10 @@
 	void *srealloc(void *ptr, size_t size);
 	void *smalloc(size_t size);
 
+
+/* src/booleans.c */
+	Bool parse_bool(Bool *fail, char *line);
+
 /* src/checks.c */
 	void file_check(FILE *file_path, const char *filename);
 	/* conversions */
