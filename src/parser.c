@@ -108,7 +108,7 @@ int json_parse(const char *file_path, uint32_t num_entries, json_data json_entry
 		/* Arrays: ["California", 1, true, null, { Object }] */
 		/* This Array parser is only parsing string, number values. */
 		case '[':
-			i = json_array_parser(&json_entry[current_entry], line, i);
+			i = json_array_parser(json_entry[current_entry].content, line, i);
 			state = EXPECT_KEY;
 			num_lookups++;
 			break; 
@@ -250,6 +250,10 @@ int json_parse(const char *file_path, uint32_t num_entries, json_data json_entry
 
 	return 0;
 }
+
+
+
+
 
 
 

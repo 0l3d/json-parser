@@ -35,5 +35,12 @@
 	char *str_content_alloc(char *line, size_t *starting_index, size_t *size);
 
 /* src/arrays.c */
-	size_t json_array_parser(json_data *content, char *line, size_t c_pos);
+	size_t json_array_parser(json_content *content, char *line, size_t c_pos);
 
+#define INT16MAX (32767)
+#define INT16MIN (-32767)
+#define UINT16MAX (65535)
+
+#define INT32MAX (2147483647)
+#define INT32MIN (-2147483647)
+#define UINT32MAX (4294967295)
