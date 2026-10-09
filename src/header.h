@@ -2,6 +2,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
+#include <ctype.h>
 
 #include "json_data.h"	/* all structs & types used for parsing (json_value, json_content, ...) */
 #include "macros.h" /* all macros (integer bounds) */
@@ -13,6 +14,7 @@
 /* src/compare.c */
 	Bool str_compare(const char *arg, const char *str);
 	uint32_t key_match(Bool *fail, const char *key_value, uint32_t num_entries, json_data json_entry[]);
+	Bool str_n_compare(const char *arg, const char *str, size_t size);
 
 /* src/memory.c */
 	void *srealloc(void *ptr, size_t size);
@@ -36,11 +38,3 @@
 
 /* src/arrays.c */
 	size_t json_array_parser(json_content *content, char *line, size_t c_pos);
-
-#define INT16MAX (32767)
-#define INT16MIN (-32767)
-#define UINT16MAX (65535)
-
-#define INT32MAX (2147483647)
-#define INT32MIN (-2147483647)
-#define UINT32MAX (4294967295)

@@ -69,8 +69,8 @@ size_t json_array_parser(json_content *content, char *line, size_t c_pos)
 			/* INTEGER */
 			break;
 		}
-		if (reached_end == True) { reached_end = False; break; }
-		if (recursion == True) { recursion = False; continue; }
+		if (reached_end) { reached_end = False; break; }
+		if (recursion) { recursion = False; continue; }
 		i++;
 	}
 	content->recursive_content_count = recursion_counter;

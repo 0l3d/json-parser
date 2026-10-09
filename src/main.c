@@ -67,7 +67,7 @@ int main(int argc, char *argv[])
 	entries[3] = country;
 	entries[4] = cold;
 
-	json_parse(file_path, 4, entries);
+	json_parse(file_path, 5, entries);
 	
 	printf("main.c (debug): \n");
 
@@ -76,7 +76,7 @@ int main(int argc, char *argv[])
 		fprintf(stderr, "Missing arguments in command\n");
 	}
 
-	for (i = 0; i < 4; i++) {
+	for (i = 0; i < 5; i++) {
 		printf("KEY: %s\n", entries[i].key_value);
 		
 		switch (entries[i].type.content_type)
@@ -93,6 +93,8 @@ int main(int argc, char *argv[])
 					printf("VALUE: %s\n", entries[i].content->value.data.string);
 					break;
 				case BOOL:
+					printf("TYPE: BOOLEAN \n");
+					printf("VALUE: %d\n", entries[i].content->value.data.boolean);
 					break;
 				case CHAR:
 					break;
