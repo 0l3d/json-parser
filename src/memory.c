@@ -1,12 +1,14 @@
 #include "header.h"
 
-void *smalloc(size_t size)
+void *smalloc(struct memory_layout_node *node, size_t size)
 {
+	struct memory_layout_node *last_node = NULL;
+
 	void *ptr = NULL;
 	if (size <= 0)
 	{
 		fprintf(stderr, "Invalid malloc() call with size %lu\n", size);
-		/* TODO free all allocated memory & exit */
+		sfree(node);
 		exit(EXIT_FAILURE);
 	}
 
@@ -14,18 +16,31 @@ void *smalloc(size_t size)
 	if (ptr == NULL)
 	{
 		fprintf(stderr, "malloc() fn failed to allocated memory of size %lu on the heap\n", size);
-		/* TODO free all allocated memory & exit */
+		sfree(node);
 		exit(EXIT_FAILURE);
 	}
+
+	last_node = get_last_node(node);
+	last_node->next_node = malloc(sizeof(struct memory_layout_node));
+	if (last_node->next_node == NULL)
+	{
+		fprintf(stderr, "malloc() failed inside smalloc() function\n"
+				"(failed to allocate memory for memory handling)\n");
+		sfree(node);
+		exit(EXIT_FAILURE);
+	}
+	last_node->next_node->allocated = True;
+	last_node->next_node->ptr = ptr;
 	return ptr;	/* return pointer to buffer */
 }
 
-void *srealloc(void *ptr, size_t size)
+void *srealloc(struct memory_layout_node *node, void *ptr, size_t size)
 {
+	struct memory_layout_node *last_node = NULL;
 	if (size <= 0)
 	{
 		fprintf(stderr, "Invalid realloc() call with size %lu\n", size);
-		/* TODO free all allocated memory & exit */
+		sfree(node);
 		exit(EXIT_FAILURE);
 	}
 
@@ -34,9 +49,21 @@ void *srealloc(void *ptr, size_t size)
 	if (ptr == NULL)
 	{
 		fprintf(stderr, "realloc() fn failed to allocated memory of size %lu on the heap\n", size);
-		/* TODO free all allocated memory & exit */
+		sfree(node);
 		exit(EXIT_FAILURE);
 	}
+
+	last_node = get_last_node(node);
+	last_node->next_node = malloc(sizeof(struct memory_layout_node));
+	if (last_node->next_node == NULL)
+	{
+		fprintf(stderr, "malloc() failed inside realloc() function\n");
+		sfree(node);
+		exit(EXIT_FAILURE);
+	}
+	last_node->next_node->allocated = True;
+	last_node->next_node->ptr = ptr;
+
 	return ptr;	/* return pointer to buffer */
 }
 
@@ -61,7 +88,7 @@ void sfree(struct memory_layout_node *node)
 
 struct memory_layout_node *get_last_node(struct memory_layout_node *node)
 {
-	struct memory_layout_node *cur;
+	struct memory_layout_node *cur = node;
 	while (cur->next_node != NULL)
 	{
 		cur = cur->next_node;
