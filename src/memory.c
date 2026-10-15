@@ -59,4 +59,12 @@ void sfree(struct memory_layout_node *node)
 	}
 }
 
-/* TODO: declare a function getting the next node */
+struct memory_layout_node *get_last_node(struct memory_layout_node *node)
+{
+	struct memory_layout_node *cur;
+	while (cur->next_node != NULL)
+	{
+		cur = cur->next_node;
+	}
+	return cur;
+}

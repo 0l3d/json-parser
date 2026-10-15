@@ -257,12 +257,3 @@ int json_parse(const char *file_path, uint32_t num_entries, json_data json_entry
 
 	return 0;
 }
-
-
-
-
-
-
-
-
-

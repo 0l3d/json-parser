@@ -40,9 +40,11 @@
 	size_t json_array_parser(json_content *content, char *line, size_t c_pos);
 
 /* handling memory */
-struct memory_layout_node
-{
-	void *ptr;
-	Bool allocated;
-	struct memory_layout_node *next_node;
-};
+	struct memory_layout_node *get_last_node(struct memory_layout_node *node);
+	void sfree(struct memory_layout_node *node);
+	struct memory_layout_node
+	{
+		void *ptr;
+		Bool allocated;
+		struct memory_layout_node *next_node;
+	};
