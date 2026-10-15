@@ -67,6 +67,11 @@ int main(int argc, char *argv[])
 	entries[3] = country;
 	entries[4] = cold;
 
+	if (argc < 2)
+	{
+		fprintf(stderr, "Missing args\n");
+		exit(EXIT_FAILURE);
+	}
 	json_parse(file_path, 5, entries);
 	
 	printf("main.c (debug): \n");

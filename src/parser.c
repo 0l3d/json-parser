@@ -5,8 +5,6 @@
 
 const Bool verbose = True;
 
-
-
 int json_parse(const char *file_path, uint32_t num_entries, json_data json_entry[])
 {
 	/* json_state is an enum defined in src/enums.h
@@ -44,7 +42,8 @@ int json_parse(const char *file_path, uint32_t num_entries, json_data json_entry
 					   key_failure is set to false */
 	Bool fail = True;	/* used for error checking in Bool parsing */
 
-	/* END of declaration section */
+
+	/* END of declaration section (C89) */
 
 
 	file_check(fp, file_path);	/* checks for fp being NULL */
@@ -212,8 +211,7 @@ int json_parse(const char *file_path, uint32_t num_entries, json_data json_entry
 					 * order to prevent memory leaks */
 
 					json_entry[current_entry].content->type = VALUE;
-					/* Why?
-					 * json_entry[current_entry].content = malloc(sizeof(int64_t)); */
+					/* json_entry[current_entry].content = malloc(sizeof(int64_t)); */
 					i += parse_integer(line + i, &json_entry[current_entry].content->value.data.integer);
 					if (verbose)
 					{

@@ -43,15 +43,19 @@ void *srealloc(void *ptr, size_t size)
 /* free every single node in the linked list */
 void sfree(struct memory_layout_node *node)
 {
-	struct memory_layout_node memory_region = { NULL, False, NULL };
-	int i = 0;
+	struct memory_layout_node *cur = node;
+	struct memory_layout_node *next = NULL;
 
-	for (i = 0;; i++)
+	while (cur != NULL)
 	{
+		next = cur->next_node;
 
-		if (allocated)
+		if (cur->allocated)
 		{
+			free(cur->ptr);
 		}
+		free(cur);
+		cur = next;
 	}
 }
 
