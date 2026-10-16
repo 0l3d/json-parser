@@ -7,7 +7,7 @@ void *smalloc(struct memory_layout_node *node, size_t size)
 	void *ptr = NULL;
 	if (size <= 0)
 	{
-		fprintf(stderr, "Invalid malloc() call with size %lu\n", size);
+		fprintf(stderr, "Invalid malloc() call with size %lu\n", (unsigned long)size);
 		sfree(node);
 		exit(EXIT_FAILURE);
 	}
@@ -15,7 +15,7 @@ void *smalloc(struct memory_layout_node *node, size_t size)
 	ptr = malloc(size);	/* allocate memory */
 	if (ptr == NULL)
 	{
-		fprintf(stderr, "malloc() fn failed to allocated memory of size %lu on the heap\n", size);
+		fprintf(stderr, "malloc() fn failed to allocated memory of size %lu on the heap\n", (unsigned long)size);
 		sfree(node);
 		exit(EXIT_FAILURE);
 	}
@@ -40,7 +40,7 @@ void *srealloc(struct memory_layout_node *node, void *ptr, size_t size)
 	struct memory_layout_node *last_node = NULL;
 	if (size <= 0)
 	{
-		fprintf(stderr, "Invalid realloc() call with size %lu\n", size);
+		fprintf(stderr, "Invalid realloc() call with size %lu\n", (unsigned long)size);
 		sfree(node);
 		exit(EXIT_FAILURE);
 	}
@@ -49,7 +49,7 @@ void *srealloc(struct memory_layout_node *node, void *ptr, size_t size)
 
 	if (ptr == NULL)
 	{
-		fprintf(stderr, "realloc() fn failed to allocated memory of size %lu on the heap\n", size);
+		fprintf(stderr, "realloc() fn failed to allocated memory of size %lu on the heap\n", (unsigned long)size);
 		sfree(node);
 		exit(EXIT_FAILURE);
 	}

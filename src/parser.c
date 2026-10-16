@@ -174,7 +174,7 @@ int json_parse(struct memory_layout_node *node, const char *file_path, uint32_t 
 				if (str_size > INT32MAX)
 				{
 					fprintf(stderr, "Avoided integer overflow in json_parse()\n");
-					fprintf(stderr, "%lu is greater than the upper bound: %d\n", str_size, INT32MAX);
+					fprintf(stderr, "%lu is greater than the upper bound: %d\n", (unsigned long)str_size, INT32MAX);
 					/* TODO add failure boolean for freeing all buffers and exiting safely */
 					break;
 				}
