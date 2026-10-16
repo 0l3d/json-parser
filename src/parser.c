@@ -215,7 +215,7 @@ int json_parse(struct memory_layout_node *node, const char *file_path, uint32_t 
 					i += parse_integer(line + i, &json_entry[current_entry].content->value.data.integer);
 					if (verbose)
 					{
-						printf("integer value -> %ld\n", json_entry[current_entry].content->value.data.integer);
+						printf("integer value -> %" PRIu64 "\n", json_entry[current_entry].content->value.data.integer);
 					}
 
 					state = EXPECT_KEY;

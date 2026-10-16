@@ -97,7 +97,7 @@ int main(int argc, char *argv[])
 			{ 
 				case INTEGER:
 					printf("TYPE: INTEGER \n");
-					printf("VALUE: %ld\n", entries[i].content->value.data.integer);
+					printf("VALUE: %" PRIu64 "\n", entries[i].content->value.data.integer);
 					break;
 				case STRING:
 					printf("TYPE: STRING \n");
