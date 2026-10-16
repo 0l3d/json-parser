@@ -31,6 +31,7 @@ void *smalloc(struct memory_layout_node *node, size_t size)
 	}
 	last_node->next_node->allocated = True;
 	last_node->next_node->ptr = ptr;
+	last_node->next_node->next_node = NULL;
 	return ptr;	/* return pointer to buffer */
 }
 
@@ -63,7 +64,7 @@ void *srealloc(struct memory_layout_node *node, void *ptr, size_t size)
 	}
 	last_node->next_node->allocated = True;
 	last_node->next_node->ptr = ptr;
-
+	last_node->next_node->next_node = NULL;
 	return ptr;	/* return pointer to buffer */
 }
 
@@ -89,6 +90,7 @@ void sfree(struct memory_layout_node *node)
 struct memory_layout_node *get_last_node(struct memory_layout_node *node)
 {
 	struct memory_layout_node *cur = node;
+
 	while (cur->next_node != NULL)
 	{
 		cur = cur->next_node;

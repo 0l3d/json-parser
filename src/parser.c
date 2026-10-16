@@ -5,7 +5,7 @@
 
 const Bool verbose = True;
 
-int json_parse(const char *file_path, uint32_t num_entries, json_data json_entry[])
+int json_parse(struct memory_layout_node *node, const char *file_path, uint32_t num_entries, json_data json_entry[])
 {
 	/* json_state is an enum defined in src/enums.h
 	 * it is used in order to store the current parsing mode (or the type of value expected */
@@ -51,7 +51,7 @@ int json_parse(const char *file_path, uint32_t num_entries, json_data json_entry
 	/* This section turns a multi-line file into one line.
 	 */
 	total_allocations += STARTING_ALLOCATION;
-	line = smalloc(total_allocations);
+	line = smalloc(node, total_allocations);
 	line[0] = '\0';
 
 	while (fgets(buf, sizeof(buf), fp))
@@ -75,7 +75,7 @@ int json_parse(const char *file_path, uint32_t num_entries, json_data json_entry
 				buffer_increment <<= 1;
 			} while (len + index + 2 > total_allocations);
 
-			tmp = srealloc(line, total_allocations);
+			tmp = srealloc(node, line, total_allocations);
 			line = tmp;
 		}
 		/* Reallocation */
@@ -106,7 +106,7 @@ int json_parse(const char *file_path, uint32_t num_entries, json_data json_entry
 		/* Arrays: ["California", 1, true, null, { Object }] */
 		/* This Array parser is only parsing string, number values. */
 		case '[':
-			i = json_array_parser(json_entry[current_entry].content, line, i);
+			i = json_array_parser(node, json_entry[current_entry].content, line, i);
 			state = EXPECT_KEY;
 			num_lookups++;
 			break; 
@@ -148,7 +148,7 @@ int json_parse(const char *file_path, uint32_t num_entries, json_data json_entry
 			{
 				start_quote_index = i + 1;
 
-				key_value = str_content_alloc(line, &start_quote_index, &str_size);
+				key_value = str_content_alloc(node, line, &start_quote_index, &str_size);
 				if (verbose)
 				{
 					printf("key value -> %s\n", key_value);	/* prints the key_value as a test */
@@ -196,7 +196,7 @@ int json_parse(const char *file_path, uint32_t num_entries, json_data json_entry
 					}
 
 					/* get the value in the line & store it inside of content string */
-					content = str_content_alloc(line, &start_quote_index, &str_size);
+					content = str_content_alloc(node, line, &start_quote_index, &str_size);
 
 					json_entry[current_entry].content->type = VALUE;
 					json_entry[current_entry].content->value.data.string = content;
@@ -252,8 +252,6 @@ int json_parse(const char *file_path, uint32_t num_entries, json_data json_entry
 		}
 		i++;
 	}
-
-	free(line);
 
 	return 0;
 }
