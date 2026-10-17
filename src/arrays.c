@@ -8,7 +8,7 @@
  * -> return the newly allocated array
  */
 /* For now, I only parse 2 array elements. */
-size_t json_array_parser(json_content *content, char *line, size_t c_pos)
+size_t json_array_parser(struct memory_layout_node *node, json_content *content, char *line, size_t c_pos)
 {
 	size_t i = c_pos + 1;
 	json_value buffer;
@@ -23,15 +23,15 @@ size_t json_array_parser(json_content *content, char *line, size_t c_pos)
 	/* variable declaration end */
 
 	/* Only 2 for now. */
-	content->array = smalloc(3 * sizeof(json_value));
-	content->recursive_content = smalloc(3 * sizeof(json_content));	
+	content->array = smalloc(node, 3 * sizeof(json_value));
+	content->recursive_content = smalloc(node, 3 * sizeof(json_content));	
 	/* Only 2 for now */
 	while (line[i] != '\0' && reached_end == False) 
 	{
 		switch (line[i]) 
 		{
 		case '[':
-			ret_value = json_array_parser(&content->recursive_content[recursion_counter], line, i);
+			ret_value = json_array_parser(node, &content->recursive_content[recursion_counter], line, i);
 			i = ret_value;
 			/* setting type to array to understand */
 			content->array[total_values++].type.content_type = ARRAY;
@@ -59,7 +59,7 @@ size_t json_array_parser(json_content *content, char *line, size_t c_pos)
 			buffer.type.content_type = VALUE;
 			buffer_changed = True;
 			i++;
-			buffer.data.string = str_content_alloc(line, &i, &str_size);
+			buffer.data.string = str_content_alloc(node, line, &i, &str_size);
 			break;
 		case ',':
 			if (buffer_changed) {

@@ -10,9 +10,9 @@ int main(int argc, char *argv[])
 	const char *file_path = argv[1];	/* will segfault if missing args */
 	int i = 0;
 	int j = 0;
-	size_t b = 0; 
+	size_t b = 0;
+	struct memory_layout_node *nodes = NULL;
 	json_content contents[5] = {0};
-
 
 	json_data country =
 	{
@@ -72,7 +72,13 @@ int main(int argc, char *argv[])
 		fprintf(stderr, "Missing args\n");
 		exit(EXIT_FAILURE);
 	}
-	json_parse(file_path, 5, entries);
+	
+	nodes = malloc(sizeof(struct memory_layout_node));
+	nodes->ptr = NULL;
+	nodes->allocated = False;
+	nodes->next_node = NULL;
+
+	json_parse(nodes, file_path, 5, entries);
 	
 	printf("main.c (debug): \n");
 
@@ -91,7 +97,7 @@ int main(int argc, char *argv[])
 			{ 
 				case INTEGER:
 					printf("TYPE: INTEGER \n");
-					printf("VALUE: %ld\n", entries[i].content->value.data.integer);
+					printf("VALUE: %" PRIu64 "\n", entries[i].content->value.data.integer);
 					break;
 				case STRING:
 					printf("TYPE: STRING \n");
@@ -151,6 +157,6 @@ int main(int argc, char *argv[])
 		}
 	}
 
-
+	sfree(nodes);
 	return 0;
 }
