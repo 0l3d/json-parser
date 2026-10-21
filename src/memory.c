@@ -22,7 +22,7 @@ void *scalloc(struct memory_layout_node *node, size_t n, size_t size)
 	}
 
 	last_node = get_last_node(node);
-	last_node->next_node = smalloc(sizeof(struct memory_layout_node));
+	last_node->next_node = smalloc(NULL, sizeof(struct memory_layout_node));
 	if (last_node->next_node == NULL)
 	{
 		fprintf(stderr, "smalloc() failed inside scalloc() function\n"
@@ -56,18 +56,21 @@ void *smalloc(struct memory_layout_node *node, size_t size)
 		exit(EXIT_FAILURE);
 	}
 
-	last_node = get_last_node(node);
-	last_node->next_node = malloc(sizeof(struct memory_layout_node));
-	if (last_node->next_node == NULL)
+	if (node != NULL)
 	{
-		fprintf(stderr, "malloc() failed inside smalloc() function\n"
-				"(failed to allocate memory for memory handling)\n");
-		sfree(node);
-		exit(EXIT_FAILURE);
+		last_node = get_last_node(node);
+		last_node->next_node = malloc(sizeof(struct memory_layout_node));
+		if (last_node->next_node == NULL)
+		{
+			fprintf(stderr, "malloc() failed inside smalloc() function\n"
+					"(failed to allocate memory for memory handling)\n");
+			sfree(node);
+			exit(EXIT_FAILURE);
+		}
+		last_node->next_node->allocated = True;
+		last_node->next_node->ptr = ptr;
+		last_node->next_node->next_node = NULL;
 	}
-	last_node->next_node->allocated = True;
-	last_node->next_node->ptr = ptr;
-	last_node->next_node->next_node = NULL;
 	return ptr;	/* return pointer to buffer */
 }
 
