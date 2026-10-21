@@ -155,8 +155,7 @@ int json_parse(struct memory_layout_node *node, const char *file_path, uint32_t 
 				}
 
 				key_failure = False;
-				/* TODO validate num_entries being unsigned or edit fn declaration */
-				current_entry = key_match(&key_failure, key_value, (unsigned)num_entries, json_entry);
+				current_entry = key_match(&key_failure, key_value, num_entries, json_entry);
 
 				if (!key_failure)
 				{
