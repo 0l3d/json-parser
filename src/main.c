@@ -147,7 +147,7 @@ int main(int argc, char *argv[])
 							printf("Recursion Array [%d]. value_str: %s\n", j,
 								entries[i].content->recursive_content[b].array[j].data.string);
 						if (entries[i].content->recursive_content[b].array[j].type.data_type == INTEGER)
-							printf("Recursion Array [%d]. value_int: %lld\n", j,
+							printf("Recursion Array [%d]. value_int: %" PRIu64 "\n", j,
 								entries[i].content->recursive_content[b].array[j].data.integer);
 					}
 				}
