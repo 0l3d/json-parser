@@ -15,7 +15,9 @@ size_t json_array_parser(struct memory_layout_node *node, json_content *content,
 	size_t total_values = 0;
 	size_t str_size = 0;
 	size_t ret_value;
+	size_t array_capacity = STARTING_ALLOCATION;
 	size_t recursion_counter = 0;
+	size_t recursion_capacity = STARTING_ALLOCATION;
 	Bool buffer_changed = False;
 	Bool recursion = False;
 	Bool reached_end = False; 
@@ -23,14 +25,18 @@ size_t json_array_parser(struct memory_layout_node *node, json_content *content,
 	/* variable declaration end */
 
 	/* Only 2 for now. */
-	content->array = smalloc(node, 3 * sizeof(json_value));
-	content->recursive_content = smalloc(node, 3 * sizeof(json_content));	
+	content->array = smalloc(node, STARTING_ALLOCATION * sizeof(json_value));
+	content->recursive_content = smalloc(node, STARTING_ALLOCATION * sizeof(json_content));	
 	/* Only 2 for now */
 	while (line[i] != '\0' && reached_end == False) 
 	{
 		switch (line[i]) 
 		{
 		case '[':
+			if (recursion_counter >= recursion_capacity) {
+				recursion_capacity *= 2;
+				content->recursive_content = srealloc(node, content->recursive_content, recursion_capacity * sizeof(json_value));	
+			}
 			ret_value = json_array_parser(node, &content->recursive_content[recursion_counter], line, i);
 			i = ret_value;
 			/* setting type to array to understand */
@@ -39,13 +45,11 @@ size_t json_array_parser(struct memory_layout_node *node, json_content *content,
 			recursion = True;
 			break;
 		case ']':
-			/* The last element could be any type, but for now I am only adding strings. */
 			if (buffer_changed)
 				content->array[total_values++] = buffer;
 			i++;
 			reached_end = True;
 			content->array[total_values].type.content_type = UNKNOWN;
-			/* The last element is set to UNKNOWN to mark the end of the array. */
 			break;
 		case '{':
 			/* OBJECT */ 
