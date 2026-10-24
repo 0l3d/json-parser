@@ -68,13 +68,23 @@ size_t json_array_parser(struct memory_layout_node *node, json_content *content,
 		case ',':
 			if (buffer_changed) {
 				/* Flush buffer into content array and move to the next item. */
+				if (total_values >= array_capacity) {
+					array_capacity *= 2;
+					content->array = srealloc(node, content->array, array_capacity * sizeof(json_value));
+				}
 				content->array[total_values++] = buffer;
 				buffer_changed = False;
 			}
 			break;
-		default:	
-			/* INTEGER */
-			break;
+		default:
+			if (isdigit(line[i])) { 
+				i += parse_integer(line + i, &buffer.data.integer);
+				buffer.type.data_type = INTEGER;
+				buffer.type.content_type = VALUE;
+				buffer_changed = True;
+				i--;
+				break;
+			}
 		}
 		if (reached_end) { reached_end = False; break; }
 		if (recursion) { recursion = False; continue; }
