@@ -30,12 +30,18 @@ size_t json_array_parser(struct memory_layout_node *node, json_content *content,
 	/* Only 2 for now */
 	while (line[i] != '\0' && reached_end == False) 
 	{
+		
+		if (total_values + 2 > array_capacity) {
+			array_capacity *= 2;
+			content->array = srealloc(node, content->array, array_capacity * sizeof(json_value));
+		}
+
 		switch (line[i]) 
 		{
 		case '[':
 			if (recursion_counter >= recursion_capacity) {
 				recursion_capacity *= 2;
-				content->recursive_content = srealloc(node, content->recursive_content, recursion_capacity * sizeof(json_value));	
+				content->recursive_content = srealloc(node, content->recursive_content, recursion_capacity * sizeof(json_content));	
 			}
 			ret_value = json_array_parser(node, &content->recursive_content[recursion_counter], line, i);
 			i = ret_value;
@@ -68,10 +74,6 @@ size_t json_array_parser(struct memory_layout_node *node, json_content *content,
 		case ',':
 			if (buffer_changed) {
 				/* Flush buffer into content array and move to the next item. */
-				if (total_values >= array_capacity) {
-					array_capacity *= 2;
-					content->array = srealloc(node, content->array, array_capacity * sizeof(json_value));
-				}
 				content->array[total_values++] = buffer;
 				buffer_changed = False;
 			}
