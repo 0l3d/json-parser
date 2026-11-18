@@ -40,6 +40,7 @@ size_t json_array_parser(struct memory_layout_node *node, json_content *content,
 	Bool buffer_changed = False;
 	Bool recursion = False;
 	Bool reached_end = False; 
+	Bool fail = False;
 
 	/* variable declaration end */
 
@@ -119,6 +120,21 @@ size_t json_array_parser(struct memory_layout_node *node, json_content *content,
 				buffer_changed = True;
 				i--;
 				break;
+			} else 
+			{
+				if (str_n_compare(line + i, "true", 4) || str_n_compare(line + i, "false", 5)) {
+					buffer.data.boolean = parse_bool(&fail, line + i);
+					if (!fail) 
+					{
+						buffer.type.data_type = BOOL;
+						buffer.type.content_type = VALUE;
+						buffer_changed = True;
+						if (buffer.data.boolean) 
+							i += 3;
+						else
+							i += 4;
+					}
+				}
 			}
 		}
 		if (reached_end) { reached_end = False; break; }

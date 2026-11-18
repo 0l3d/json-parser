@@ -166,6 +166,9 @@ int main(int argc, char *argv[])
 						if (entries[i].content->recursive_content[b].array[j].type.data_type == FLOAT)
 							printf("Recursion Array [%d]. value_float: %f\n", j,
 								entries[i].content->recursive_content[b].array[j].data.ffloat);
+						if (entries[i].content->recursive_content[b].array[j].type.data_type == BOOL)
+							printf("Recursion Array [%d]. value_boolean: %s\n", j,
+								entries[i].content->recursive_content[b].array[j].data.boolean ? "True" : "False");
 					}
 				}
 				break;
